@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tidak Ada Koneksi — NOTAGO</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f7fb;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid #e5e7eb;
+            padding: 48px 40px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(15,23,42,0.08);
+        }
+
+        .icon-wrap {
+            width: 72px;
+            height: 72px;
+            background: #eef2ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .icon-wrap svg {
+            width: 36px;
+            height: 36px;
+            color: #4f46e5;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            font-size: 0.925rem;
+            color: #64748b;
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #4f46e5;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            background: #94a3b8;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="badge">
+            <span class="dot"></span>
+            NOTAGO
+        </div>
+
+        <div class="icon-wrap">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/>
+            </svg>
+        </div>
+
+        <h1>Tidak Ada Koneksi</h1>
+        <p>
+            Sepertinya Anda sedang offline.<br>
+            Periksa koneksi internet Anda dan coba lagi.
+        </p>
+
+        <button class="btn" onclick="window.location.reload()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+            </svg>
+            Coba Lagi
+        </button>
+    </div>
+</body>
+</html>

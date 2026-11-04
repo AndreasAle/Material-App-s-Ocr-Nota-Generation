@@ -1,0 +1,49 @@
+{
+  "name": "NOTAGO — Sistem RAB Material",
+  "short_name": "NOTAGO",
+  "description": "Sistem manajemen RAB dan transaksi pembelian material konstruksi",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f7fb",
+  "theme_color": "#4f46e5",
+  "lang": "id",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Transaksi Pembelian",
+      "short_name": "Pembelian",
+      "description": "Buka daftar transaksi pembelian",
+      "url": "/purchase-transactions",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "RAB & Anggaran",
+      "short_name": "RAB",
+      "description": "Buka modul RAB Planning",
+      "url": "/rab-plans",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    }
+  ],
+  "categories": ["business", "finance", "productivity"]
+}
