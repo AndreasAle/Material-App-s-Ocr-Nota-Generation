@@ -239,7 +239,7 @@ class PurchaseScanBatchService
                         'items_count' => count($allItems),
                         'files_count' => $totalFiles,
                         'processed_at' => now()->toDateTimeString(),
-                        'ocr_engine' => strtolower((string) env('OCR_DRIVER', 'tesseract')),
+                        'ocr_engine' => strtolower((string) config('services.ocr.driver', 'tesseract')),
                         'mode' => 'multiple',
                     ],
                 ],
@@ -285,7 +285,7 @@ class PurchaseScanBatchService
             'error_message' => null,
         ]);
 
-        $ocrEngine = strtolower((string) env('OCR_DRIVER', 'tesseract'));
+        $ocrEngine = strtolower((string) config('services.ocr.driver', 'tesseract'));
         $relativePath = $file->file_path; // wajib relatif
 
         if ($ocrEngine === 'openai') {

@@ -54,6 +54,11 @@ return [
     'overlay' => filter_var(env('OCR_SPACE_OVERLAY', false), FILTER_VALIDATE_BOOL),
 ],
 
+    // Mesin OCR scan nota: openai | ocr_space | paddle | tesseract
+    'ocr' => [
+        'driver' => env('OCR_DRIVER', 'tesseract'),
+    ],
+
     'fonnte' => [
         'token' => env('FONNTE_TOKEN'),
     ],

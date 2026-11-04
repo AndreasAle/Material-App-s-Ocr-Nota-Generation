@@ -13,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(ReceiptOcrService::class, function ($app) {
-            $driver = strtolower((string) env('OCR_DRIVER', 'tesseract'));
+            $driver = strtolower((string) config('services.ocr.driver', 'tesseract'));
 
             return match ($driver) {
                 'ocr_space', 'ocrspace' => $app->make(OcrSpaceReceiptOcrService::class),

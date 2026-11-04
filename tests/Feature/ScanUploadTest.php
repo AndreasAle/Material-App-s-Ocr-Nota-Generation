@@ -68,4 +68,27 @@ class ScanUploadTest extends TestCase
         $this->assertSame(2, $batch->files()->count());
         Queue::assertPushed(ProcessPurchaseScanBatchJob::class);
     }
+
+    /**
+     * Di produksi config di-cache (php artisan config:cache) sehingga env() di luar folder config
+     * selalu kosong — dulu membuat OCR_DRIVER=openai terbaca "tesseract" di server.
+     */
+    public function test_env_is_not_called_outside_config_files(): void
+    {
+        $offenders = [];
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(app_path(), \FilesystemIterator::SKIP_DOTS));
+        foreach ($iterator as $file) {
+            if ($file->getExtension() === 'php' && preg_match('/(?<![A-Za-z_>:])env\(/', file_get_contents($file->getPathname()))) {
+                $offenders[] = str_replace(base_path() . DIRECTORY_SEPARATOR, '', $file->getPathname());
+            }
+        }
+
+        $this->assertSame([], $offenders, 'Pakai config() — env() dilarang di luar config/: ' . implode(', ', $offenders));
+    }
+
+    public function test_ocr_driver_comes_from_config(): void
+    {
+        config(['services.ocr.driver' => 'ocr_space']);
+        $this->assertInstanceOf(\App\Services\Purchases\Ocr\OcrSpaceReceiptOcrService::class, app(\App\Services\Purchases\Ocr\ReceiptOcrService::class));
+    }
 }

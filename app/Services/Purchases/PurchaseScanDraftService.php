@@ -152,7 +152,7 @@ class PurchaseScanDraftService
 
     public function processExistingDraft(PurchaseScanDraft $draft, string $path): PurchaseScanDraft
 {
-    $ocrEngine = strtolower((string) env('OCR_DRIVER', 'tesseract'));
+    $ocrEngine = strtolower((string) config('services.ocr.driver', 'tesseract'));
 
     $draft->update([
         'status' => 'processing',
