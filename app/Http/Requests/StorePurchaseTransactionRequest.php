@@ -34,6 +34,7 @@ class StorePurchaseTransactionRequest extends FormRequest
             'mark_received' => ['nullable', 'boolean'],
             'paid_in_full' => ['nullable', 'boolean'],
             'payment_method' => ['nullable', 'in:cash,transfer,giro,cek'],
+            'due_date' => ['nullable', 'date'],
             'auto_create_missing_materials' => ['nullable', 'boolean'],
 
                 'attachments' => ['nullable', 'array'],

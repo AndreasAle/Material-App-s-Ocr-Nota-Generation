@@ -1,246 +1,108 @@
 @extends('layouts.app')
 
+@section('title', 'Hasil Scan Beberapa Nota')
+
 @section('content')
 @php
     $status = strtolower((string) $purchaseScanBatch->status);
+    $rp = fn ($v) => 'Rp ' . number_format((float) $v, 0, ',', '.');
+    $qtyFmt = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, ',', '.'), '0'), ',');
 
-    $statusConfig = match ($status) {
-        'processed' => [
-            'label' => 'Batch Berhasil',
-            'badge' => 'bg-emerald-100 text-emerald-700 border border-emerald-200',
-            'panel' => 'border-emerald-200 bg-emerald-50/70',
-            'iconWrap' => 'bg-emerald-100 text-emerald-700',
-            'title' => 'Multiple Notes berhasil diproses',
-            'desc' => 'Sistem berhasil membaca beberapa nota dan menggabungkannya menjadi 1 draft transaksi.',
-        ],
-        'supplier_mismatch' => [
-            'label' => 'Supplier Berbeda',
-            'badge' => 'bg-amber-100 text-amber-700 border border-amber-200',
-            'panel' => 'border-amber-200 bg-amber-50/70',
-            'iconWrap' => 'bg-amber-100 text-amber-700',
-            'title' => 'Batch ditolak karena supplier berbeda',
-            'desc' => 'Mode Multiple Notes hanya menerima nota dari supplier yang sama.',
-        ],
-        'failed' => [
-            'label' => 'Scan Gagal',
-            'badge' => 'bg-rose-100 text-rose-700 border border-rose-200',
-            'panel' => 'border-rose-200 bg-rose-50/70',
-            'iconWrap' => 'bg-rose-100 text-rose-700',
-            'title' => 'Proses batch tidak berhasil',
-            'desc' => 'Sistem belum bisa membaca seluruh nota dengan baik.',
-        ],
-        default => [
-            'label' => ucfirst($purchaseScanBatch->status),
-            'badge' => 'bg-slate-100 text-slate-700 border border-slate-200',
-            'panel' => 'border-slate-200 bg-slate-50/70',
-            'iconWrap' => 'bg-slate-100 text-slate-700',
-            'title' => 'Status batch tersedia',
-            'desc' => 'Silakan review hasil pembacaan Multiple Notes.',
-        ],
+    [$title, $desc, $tone, $icon] = match ($status) {
+        'processed' => ['Semua nota berhasil dibaca', 'Cek dulu hasilnya, lalu simpan supaya stok bertambah.', 'emerald', 'check'],
+        'reviewed'  => ['Koreksi sudah disimpan', 'Tinggal masukkan ke catatan pembelian.', 'brand', 'check'],
+        'imported'  => ['Sudah masuk pembelian', 'Nota-nota ini sudah dipakai untuk membuat transaksi.', 'sky', 'check'],
+        'supplier_mismatch' => ['Supplier nota berbeda', 'Beberapa nota hanya bisa digabung kalau dari supplier yang sama.', 'rose', 'alert'],
+        'failed'    => ['Ada nota yang gagal dibaca', 'Foto ulang dengan cahaya lebih terang dan posisi nota rata.', 'rose', 'alert'],
+        default     => ['Sedang diproses', 'Mohon tunggu sebentar.', 'charcoal', 'camera'],
     };
+    $toneBg = ['emerald' => 'bg-emerald-500', 'brand' => 'bg-brand-500', 'sky' => 'bg-sky-500', 'rose' => 'bg-rose-500', 'charcoal' => 'bg-charcoal-500'][$tone];
+    $canContinue = $totalItems > 0 && in_array($status, ['processed', 'reviewed'], true);
 @endphp
 
-<x-page-header
-    title="Review Multiple Notes"
-    subtitle="Periksa hasil gabungan beberapa nota sebelum dimasukkan ke transaksi pembelian."
-/>
+<x-page-header title="Hasil Scan Beberapa Nota" subtitle="Ringkasan hasil pembacaan semua nota." :back="route('purchase-scan-batches.create')" />
 
-<div class="space-y-6">
-    <div class="overflow-hidden rounded-[28px] border {{ $statusConfig['panel'] }} shadow-sm">
-        <div class="flex flex-col gap-5 px-6 py-6 lg:flex-row lg:items-center lg:justify-between">
-            <div class="flex items-start gap-4">
-                <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl {{ $statusConfig['iconWrap'] }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </div>
+<div class="card mb-4 flex items-center gap-4 p-4">
+    <span class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl {{ $toneBg }} text-white"><x-icon :name="$icon" class="h-7 w-7" stroke="2" /></span>
+    <div class="min-w-0">
+        <h2 class="text-lg font-extrabold leading-tight text-charcoal-900">{{ $title }}</h2>
+        <p class="text-sm text-charcoal-500">{{ $desc }}</p>
+    </div>
+</div>
 
-                <div>
-                    <div class="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ $statusConfig['badge'] }}">
-                        {{ $statusConfig['label'] }}
-                    </div>
+@if($purchaseScanBatch->error_message)
+    <div class="alert-danger mb-4"><p>{{ $purchaseScanBatch->error_message }}</p></div>
+@endif
 
-                    <h2 class="mt-3 text-xl font-bold tracking-tight text-slate-900">
-                        {{ $statusConfig['title'] }}
-                    </h2>
+<div class="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+    <div class="stat-tile !p-3 col-span-2 sm:col-span-1"><p class="stat-tile-label">Supplier</p><p class="mt-1 truncate text-[15px] font-extrabold">{{ $supplierName }}</p></div>
+    <div class="stat-tile !p-3"><p class="stat-tile-label">Jumlah nota</p><p class="mt-1 text-[15px] font-extrabold">{{ count($filesForView) }}</p></div>
+    <div class="stat-tile !p-3"><p class="stat-tile-label">Barang</p><p class="mt-1 text-[15px] font-extrabold">{{ $totalItems }}</p></div>
+    <div class="stat-tile !p-3 col-span-2 sm:col-span-1"><p class="stat-tile-label">Total gabungan</p><p class="mt-1 text-[15px] font-extrabold text-emerald-700">{{ $rp($grandTotal) }}</p></div>
+</div>
 
-                    <p class="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
-                        {{ $statusConfig['desc'] }}
-                    </p>
-
-                    <div class="mt-4 flex flex-wrap gap-2">
-                        <div class="rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-700">
-                            Batch: <span class="font-semibold text-slate-900">{{ $purchaseScanBatch->batch_code }}</span>
-                        </div>
-                        <div class="rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-700">
-                            Supplier: <span class="font-semibold text-slate-900">{{ $supplierName }}</span>
-                        </div>
-                        <div class="rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-700">
-                            Jumlah Nota: <span class="font-semibold text-slate-900">{{ $purchaseScanBatch->total_files }}</span>
-                        </div>
-                        <div class="rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-700">
-                            Jumlah Item: <span class="font-semibold text-slate-900">{{ $totalItems }}</span>
-                        </div>
-                    </div>
-                </div>
+{{-- Per nota --}}
+<h3 class="mb-2 text-[15px] font-bold text-charcoal-900">Nota yang di-scan</h3>
+<div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+    @foreach($filesForView as $i => $f)
+        <div class="card flex items-center gap-3 p-3">
+            <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-charcoal-900 text-sm font-extrabold text-white">{{ $i + 1 }}</span>
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-bold text-charcoal-900">{{ $f['note_number'] ? 'No. ' . $f['note_number'] : $f['file_name'] }}</p>
+                <p class="truncate text-xs text-charcoal-500">{{ $f['supplier_name'] ?: 'Supplier belum terbaca' }} · {{ $f['transaction_date'] }}</p>
             </div>
-
-            <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
-                <a
-                    href="{{ route('purchase-scan-batches.create') }}"
-                    class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                    Scan Ulang
-                </a>
-
-                @if($purchaseScanBatch->status !== 'failed' && $purchaseScanBatch->status !== 'supplier_mismatch' && $totalItems > 0)
-                    <a
-                        href="{{ route('purchase-scan-batches.compare', $purchaseScanBatch) }}"
-                        class="inline-flex items-center justify-center rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100"
-                    >
-                        Mode Compare
-                    </a>
-                @endif
-
-                @if(in_array($purchaseScanBatch->status, ['processed', 'reviewed'], true) && $totalItems > 0)
-                    <form method="POST" action="{{ route('purchase-scan-batches.import', $purchaseScanBatch) }}">
-                        @csrf
-                        <button
-                            type="submit"
-                            class="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-                        >
-                            Masukkan ke Transaksi
-                        </button>
-                    </form>
-                @endif
-
+            <div class="shrink-0 text-right">
+                <p class="text-sm font-extrabold text-charcoal-900">{{ $rp($f['grand_total']) }}</p>
+                @if($f['preview_url'])<a href="{{ $f['preview_url'] }}" target="_blank" rel="noopener" class="text-xs font-bold text-brand-600">Lihat foto</a>@endif
             </div>
         </div>
-    </div>
+    @endforeach
+</div>
 
-    @if($purchaseScanBatch->status === 'supplier_mismatch')
-        <div class="rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-700 shadow-sm">
-            Supplier pada nota yang diupload tidak sama, sehingga batch ini tidak bisa digabung menjadi 1 transaksi.
+{{-- Barang gabungan --}}
+<div class="card overflow-hidden">
+    <div class="border-b border-charcoal-100 px-4 py-3"><h3 class="text-[15px] font-bold text-charcoal-900">Barang gabungan ({{ $totalItems }})</h3></div>
+    @forelse($items as $i => $item)
+        @php $flag = ($item['confidence'] ?? 0) > 0 && ($item['confidence'] ?? 0) < 0.85; @endphp
+        <div class="flex items-start gap-3 border-b border-charcoal-100 px-4 py-3 last:border-b-0">
+            <span class="mt-0.5 inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg bg-charcoal-100 text-xs font-extrabold text-charcoal-600">{{ $i + 1 }}</span>
+            <div class="min-w-0 flex-1">
+                <p class="text-[15px] font-bold leading-snug text-charcoal-900">{{ $item['nama_material'] ?? '-' }}</p>
+                <p class="mt-0.5 text-sm text-charcoal-500">{{ $qtyFmt($item['qty'] ?? 0) }} {{ $item['satuan'] ?? '' }} × {{ $rp($item['harga'] ?? 0) }}</p>
+                @if($flag)<span class="badge badge-warning mt-1.5">Mohon dicek</span>@endif
+            </div>
+            <p class="shrink-0 text-right text-[15px] font-extrabold text-charcoal-900">{{ $rp($item['subtotal'] ?? 0) }}</p>
+        </div>
+    @empty
+        <p class="px-5 py-10 text-center text-sm text-charcoal-500">Belum ada barang yang terbaca.</p>
+    @endforelse
+    @if($totalItems > 0)
+        <div class="flex items-center justify-between bg-charcoal-50 px-4 py-3">
+            <span class="text-sm font-bold text-charcoal-600">Total</span>
+            <span class="text-lg font-extrabold text-charcoal-900">{{ $rp($grandTotal) }}</span>
         </div>
     @endif
+</div>
 
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <div class="space-y-6 xl:col-span-8">
-            <x-data-card class="overflow-hidden border border-slate-200 p-0 shadow-sm">
-                <div class="border-b border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-6 py-5">
-                    <h3 class="text-lg font-semibold text-slate-900">Ringkasan Batch</h3>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-2 2xl:grid-cols-4">
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Batch Code</div>
-                        <div class="mt-2 text-base font-bold text-slate-900">{{ $purchaseScanBatch->batch_code }}</div>
-                    </div>
-
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Tanggal</div>
-                        <div class="mt-2 text-base font-bold text-slate-900">{{ $displayDate }}</div>
-                    </div>
-
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Supplier</div>
-                        <div class="mt-2 text-base font-bold text-slate-900">{{ $supplierName }}</div>
-                    </div>
-
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Grand Total</div>
-                        <div class="mt-2 text-base font-bold text-slate-900">Rp {{ number_format((int) $grandTotal, 0, ',', '.') }}</div>
-                    </div>
-                </div>
-            </x-data-card>
-
-            <x-data-card class="overflow-hidden border border-slate-200 p-0 shadow-sm">
-                <div class="border-b border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-6 py-5">
-                    <h3 class="text-lg font-semibold text-slate-900">Daftar Item Gabungan</h3>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">#</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Kode</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Nama Material</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Satuan</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Qty</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Harga</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Subtotal</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Sumber</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 bg-white">
-                            @forelse($items as $index => $item)
-                                <tr>
-                                    <td class="px-4 py-3 text-sm text-slate-700">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-3 text-sm text-slate-700">{{ $item['kode'] ?? '-' }}</td>
-                                    <td class="px-4 py-3 text-sm font-medium text-slate-900">{{ $item['nama_material'] ?? '-' }}</td>
-                                    <td class="px-4 py-3 text-sm text-slate-700">{{ $item['satuan'] ?? '-' }}</td>
-                                    <td class="px-4 py-3 text-right text-sm text-slate-700">{{ $item['qty'] ?? 0 }}</td>
-                                    <td class="px-4 py-3 text-right text-sm text-slate-700">Rp {{ number_format((int) ($item['harga'] ?? 0), 0, ',', '.') }}</td>
-                                    <td class="px-4 py-3 text-right text-sm font-semibold text-slate-900">Rp {{ number_format((int) ($item['subtotal'] ?? 0), 0, ',', '.') }}</td>
-                                    <td class="px-4 py-3 text-sm text-slate-500">{{ $item['_source_file_name'] ?? '-' }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8" class="px-4 py-6 text-center text-sm text-slate-500">
-                                        Belum ada item gabungan yang terbaca.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </x-data-card>
-        </div>
-
-        <div class="space-y-6 xl:col-span-4">
-            <x-data-card class="overflow-hidden border border-slate-200 p-0 shadow-sm">
-                <div class="border-b border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-6 py-5">
-                    <h3 class="text-lg font-semibold text-slate-900">Daftar Nota</h3>
-                </div>
-
-                <div class="space-y-4 p-5">
-                    @foreach($filesForView as $file)
-                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <div class="mb-3 flex items-start justify-between gap-3">
-                                <div class="min-w-0">
-                                    <div class="truncate text-sm font-semibold text-slate-900">{{ $file['file_name'] }}</div>
-                                    <div class="mt-1 text-xs text-slate-500">Nota #{{ $loop->iteration }}</div>
-                                </div>
-
-                                <div class="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white">
-                                    {{ strtoupper($file['status']) }}
-                                </div>
-                            </div>
-
-                            <div class="space-y-1 text-xs text-slate-600">
-                                <div>No Nota: <span class="font-medium text-slate-900">{{ $file['note_number'] ?: '-' }}</span></div>
-                                <div>Supplier: <span class="font-medium text-slate-900">{{ $file['supplier_name'] ?: '-' }}</span></div>
-                                <div>Tanggal: <span class="font-medium text-slate-900">{{ $file['transaction_date'] }}</span></div>
-                                <div>Total: <span class="font-medium text-slate-900">Rp {{ number_format((int) $file['grand_total'], 0, ',', '.') }}</span></div>
-                            </div>
-
-                            @if($file['preview_url'])
-                                <div class="mt-4">
-                                    @if($file['is_image'])
-                                        <img src="{{ $file['preview_url'] }}" alt="{{ $file['file_name'] }}" class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                    @elseif($file['is_pdf'])
-                                        <a href="{{ $file['preview_url'] }}" target="_blank" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                                            Buka PDF
-                                        </a>
-                                    @endif
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-            </x-data-card>
-        </div>
+<div class="sticky bottom-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom)+8px)] z-30 mt-4 lg:bottom-4">
+    <div class="rounded-2xl bg-charcoal-900 p-3 shadow-xl shadow-charcoal-900/30">
+        @if($canContinue)
+            <div class="grid grid-cols-[2fr_3fr] gap-2">
+                <a href="{{ route('purchase-scan-batches.compare', $purchaseScanBatch) }}" class="inline-flex h-12 items-center justify-center rounded-xl bg-white/10 text-sm font-bold text-white">Cek &amp; Koreksi</a>
+                <form method="POST" action="{{ route('purchase-scan-batches.import', $purchaseScanBatch) }}" >
+                    @csrf
+                    <button class="inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 text-[15px] font-extrabold text-white">
+                        Simpan ke Pembelian
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                    </button>
+                </form>
+            </div>
+        @else
+            <div class="grid grid-cols-2 gap-2">
+                <a href="{{ route('purchase-scan-batches.create') }}" class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 text-[15px] font-extrabold text-white"><x-icon name="camera" class="h-5 w-5" />Foto nota lagi</a>
+                <a href="{{ route('purchase-transactions.index') }}" class="inline-flex h-12 items-center justify-center rounded-xl bg-white/10 text-sm font-bold text-white">Daftar pembelian</a>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

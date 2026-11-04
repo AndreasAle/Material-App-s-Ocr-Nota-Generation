@@ -363,9 +363,13 @@ public function updateCompare(Request $request, PurchaseScanBatch $purchaseScanB
         'status' => 'reviewed',
     ]);
 
+    if ($request->input('then') === 'import') {
+        return $this->import($purchaseScanBatch->fresh());
+    }
+
     return redirect()
-        ->route('purchase-scan-batches.compare', $purchaseScanBatch)
-        ->with('success', 'Compare Multiple Notes berhasil disimpan.');
+        ->route('purchase-scan-batches.show', $purchaseScanBatch)
+        ->with('success', 'Koreksi disimpan.');
 }
 
 protected function batchToFloat(mixed $value): float

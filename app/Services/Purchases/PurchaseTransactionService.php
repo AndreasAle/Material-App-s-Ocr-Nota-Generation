@@ -79,6 +79,8 @@ class PurchaseTransactionService
                 'scan_reference_id' => $data['scan_reference_id'] ?? null,
                 'status' => $data['status'],
                 'notes' => $data['notes'] ?? null,
+                // Jatuh tempo hanya berarti bila nota belum dibayar
+                'due_date' => empty($data['paid_in_full']) ? ($data['due_date'] ?? null) : null,
             ]);
 
             $transaction->items()->createMany($normalizedItems);

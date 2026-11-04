@@ -640,9 +640,14 @@ public function updateCompare(Request $request, PurchaseScanDraft $purchaseScanD
         'status' => 'reviewed',
     ]);
 
+    // "Simpan & Lanjut": koreksi yang baru diketik langsung dipakai untuk form pembelian
+    if ($request->input('then') === 'import') {
+        return $this->import($purchaseScanDraft->fresh());
+    }
+
     return redirect()
         ->route('purchase-scans.show', $purchaseScanDraft)
-        ->with('success', 'Hasil compare berhasil disimpan. Koreksi nama material akan diingat untuk scan berikutnya.');
+        ->with('success', 'Koreksi disimpan. Nama barang yang Anda perbaiki akan diingat untuk scan berikutnya.');
 }
 
 protected function buildCompareItems(array $items): array

@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
-<x-page-header title="Edit Transaksi Pembelian" subtitle="Perbarui data transaksi pembelian." />
+<x-page-header title="Ubah Pembelian" subtitle="Perbarui data pembelian ini." :back="route('purchase-transactions.show', $purchaseTransaction)" />
 
-<x-data-card class="p-5">
+<div class="lg:rounded-2xl lg:border lg:border-charcoal-200 lg:bg-white lg:p-5 lg:shadow-sm">
     <form id="purchase-transaction-form" method="POST" action="{{ route('purchase-transactions.update', $purchaseTransaction) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         @include('purchases.partials.form')
     </form>
-</x-data-card>
+</div>
 
 @if(isset($purchaseTransaction) && $purchaseTransaction->attachments->count())
     @foreach($purchaseTransaction->attachments as $attachment)

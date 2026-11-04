@@ -73,6 +73,9 @@
     $scannedSupplierName = $importDraft['supplier_name'] ?? null;
     $hasMatchedSupplier  = !empty($selectedSupplierId);
     $showMissingSupplierCard = !empty($scannedSupplierName) && empty($selectedSupplierId);
+
+    // Toko perorangan umumnya bayar langsung saat barang datang; kontraktor biasanya hutang dulu.
+    $paidDefault = (string) old('paid_in_full', config('store.mode') ? '1' : '0') === '1';
 @endphp
 
 @csrf
@@ -102,27 +105,20 @@
 
     {{-- ── SCAN IMPORT BANNER ─────────────────────────────── --}}
     @if($importDraft)
-    <div class="flex items-center gap-4 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
-            <svg class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
+    <div class="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+        </span>
+        <div class="min-w-0 flex-1">
+            <p class="text-[15px] font-bold text-emerald-900">Isi nota sudah dimasukkan</p>
+            <p class="mt-0.5 text-sm text-emerald-800">
+                <b>{{ $importedItemCount }} barang</b>
+                @if(!empty($importDraft['note_number'])) · No. {{ $importDraft['note_number'] }}@endif
+                · {{ \Carbon\Carbon::parse($initialTransactionDate)->translatedFormat('d M Y') }}
+            </p>
+            <p class="mt-1 text-lg font-extrabold text-emerald-900" id="import-summary-total">Rp {{ number_format((float)$initialGrandTotal, 0, ',', '.') }}</p>
+            <p class="mt-1 text-xs text-emerald-700">Periksa sekali lagi di bawah, lalu simpan.</p>
         </div>
-        <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold text-emerald-800">Draft scan berhasil dimuat</p>
-            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-emerald-700">
-                <span class="font-semibold">{{ $importedItemCount }} item</span>
-                <span class="text-emerald-400">·</span>
-                <span>{{ \Carbon\Carbon::parse($initialTransactionDate)->translatedFormat('d M Y') }}</span>
-                @if(!empty($importDraft['note_number']))
-                <span class="text-emerald-400">·</span>
-                <span>{{ $importDraft['note_number'] }}</span>
-                @endif
-                <span class="text-emerald-400">·</span>
-                <span id="import-summary-total" class="font-bold">Rp {{ number_format((float)$initialGrandTotal, 0, ',', '.') }}</span>
-            </div>
-        </div>
-        <span class="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-700">Review Mode</span>
     </div>
     @endif
 
@@ -167,7 +163,8 @@
                                    class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 transition">
                         </div>
 
-                        {{-- Proyek --}}
+                        {{-- Proyek (tidak dipakai di Mode Toko) --}}
+                        @unless(config('store.mode'))
                         <div>
                             <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Proyek</label>
                             <select name="project_id"
@@ -180,8 +177,12 @@
                                 @endforeach
                             </select>
                         </div>
+                        @endunless
 
-                        {{-- Status --}}
+                        {{-- Status (disembunyikan di Mode Toko: otomatis "posted") --}}
+                        @if(config('store.mode'))
+                            <input type="hidden" name="status" value="posted">
+                        @else
                         <div>
                             <label class="mb-1.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">
                                 Status <span class="text-rose-400">*</span>
@@ -195,6 +196,7 @@
                                 @endif
                             </select>
                         </div>
+                        @endif
                     </div>
 
                     {{-- Row 2: Supplier --}}
@@ -542,31 +544,64 @@
                 </div>
 
                 @if(!isset($purchaseTransaction))
-                {{-- Toko: barang datang bersama nota --}}
-                <div class="border-t border-slate-100 p-4 space-y-3" x-data="{ paid: {{ old('paid_in_full') ? 'true' : 'false' }} }">
-                    <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-3">
-                        <input type="hidden" name="mark_received" value="0">
-                        <input type="checkbox" name="mark_received" value="1" id="mark-received"
-                               class="mt-0.5 h-4 w-4 rounded accent-emerald-600"
-                               @checked(old('mark_received', config('store.auto_receive_default')))>
-                        <span>
-                            <span class="block text-sm font-bold text-emerald-800">Barang sudah diterima</span>
-                            <span class="block text-[11px] text-emerald-700">Stok langsung bertambah tanpa membuat surat jalan terpisah.</span>
-                        </span>
-                    </label>
-                    <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
-                        <input type="hidden" name="paid_in_full" value="0">
-                        <input type="checkbox" name="paid_in_full" value="1" x-model="paid" class="mt-0.5 h-4 w-4 rounded accent-indigo-600">
-                        <span>
-                            <span class="block text-sm font-bold text-slate-800">Sudah dibayar lunas</span>
-                            <span class="block text-[11px] text-slate-500">Tidak menjadi hutang ke supplier.</span>
-                        </span>
-                    </label>
-                    <select name="payment_method" x-show="paid" x-cloak
-                            class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
-                        <option value="cash">Tunai</option>
-                        <option value="transfer">Transfer</option>
-                    </select>
+                {{-- Barang datang & pembayaran nota --}}
+                <div class="space-y-4 border-t border-slate-100 p-4" x-data="{ paid: '{{ $paidDefault ? '1' : '0' }}', due: '{{ old('due_date') }}',
+                        setDue(days) { const d = new Date(); d.setDate(d.getDate() + days); this.due = d.toISOString().slice(0, 10); } }">
+
+                    <div>
+                        <p class="mb-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">Barangnya</p>
+                        <label class="flex min-h-[56px] cursor-pointer items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-3">
+                            <input type="hidden" name="mark_received" value="0">
+                            <input type="checkbox" name="mark_received" value="1" id="mark-received"
+                                   class="h-5 w-5 shrink-0 rounded accent-emerald-600"
+                                   @checked(old('mark_received', config('store.auto_receive_default')))>
+                            <span>
+                                <span class="block text-sm font-bold text-emerald-900">Barang sudah diterima</span>
+                                <span class="block text-xs text-emerald-700">Stok langsung bertambah.</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <p class="mb-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">Pembayaran nota ini</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="paid_in_full" value="1" x-model="paid" class="peer sr-only">
+                                <span class="flex min-h-[72px] flex-col justify-center rounded-xl border-2 border-slate-200 bg-white px-3 py-2 peer-checked:border-emerald-500 peer-checked:bg-emerald-50">
+                                    <span class="text-sm font-extrabold text-slate-900">Sudah dibayar</span>
+                                    <span class="text-xs text-slate-500">Lunas, tidak jadi hutang</span>
+                                </span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="paid_in_full" value="0" x-model="paid" class="peer sr-only">
+                                <span class="flex min-h-[72px] flex-col justify-center rounded-xl border-2 border-slate-200 bg-white px-3 py-2 peer-checked:border-amber-500 peer-checked:bg-amber-50">
+                                    <span class="text-sm font-extrabold text-slate-900">Belum dibayar</span>
+                                    <span class="text-xs text-slate-500">Dicatat sebagai hutang</span>
+                                </span>
+                            </label>
+                        </div>
+
+                        {{-- Sudah dibayar → cara bayar --}}
+                        <div x-show="paid === '1'" x-cloak class="mt-3">
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Dibayar dengan</label>
+                            <select name="payment_method" class="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium">
+                                <option value="cash">Tunai</option>
+                                <option value="transfer">Transfer</option>
+                            </select>
+                        </div>
+
+                        {{-- Belum dibayar → jatuh tempo --}}
+                        <div x-show="paid === '0'" x-cloak class="mt-3 space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                            <p class="text-xs font-semibold text-amber-900">Nota ini akan muncul di menu <b>Hutang</b> sampai Anda mencatat pembayarannya.</p>
+                            <label class="block text-[11px] font-semibold uppercase tracking-widest text-amber-800">Jatuh tempo (opsional)</label>
+                            <input type="date" name="due_date" x-model="due" class="h-11 w-full rounded-xl border border-amber-200 bg-white px-3 text-sm font-medium">
+                            <div class="flex gap-2">
+                                <button type="button" @click="setDue(7)" class="min-h-[36px] flex-1 rounded-lg border border-amber-300 bg-white text-xs font-bold text-amber-800">7 hari</button>
+                                <button type="button" @click="setDue(14)" class="min-h-[36px] flex-1 rounded-lg border border-amber-300 bg-white text-xs font-bold text-amber-800">14 hari</button>
+                                <button type="button" @click="setDue(30)" class="min-h-[36px] flex-1 rounded-lg border border-amber-300 bg-white text-xs font-bold text-amber-800">30 hari</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 @endif
 

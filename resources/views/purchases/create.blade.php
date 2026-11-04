@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-<x-page-header title="Tambah Transaksi Pembelian" subtitle="Input pembelian material dan lampiran nota." />
+<x-page-header title="Catat Pembelian" subtitle="Cek isi nota, tentukan sudah dibayar atau belum, lalu simpan." :back="route('purchase-transactions.index')" />
 
-<x-data-card class="p-5">
+<div class="lg:rounded-2xl lg:border lg:border-charcoal-200 lg:bg-white lg:p-5 lg:shadow-sm">
     <form id="purchase-transaction-form" method="POST" action="{{ route('purchase-transactions.store') }}" enctype="multipart/form-data">
         @include('purchases.partials.form')
     </form>
-</x-data-card>
+</div>
 @endsection
