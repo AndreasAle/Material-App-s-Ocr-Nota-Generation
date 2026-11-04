@@ -37,7 +37,7 @@ say "Composer install"
 
 # 4. File .env (RAHASIA — tidak ada di GitHub, isi manual sekali saja)
 if [ ! -f .env ]; then
-  cp deploy/.env.production.example .env
+  cp deploy/env.production.example .env
   sed -i "s|^APP_URL=.*|APP_URL=$URL|" .env
   "$PHP" artisan key:generate --force >/dev/null
   say "File .env dibuat. ISI DULU lalu jalankan skrip ini lagi:"

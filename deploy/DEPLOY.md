@@ -37,7 +37,7 @@ Kalau memindahkan data lama dari XAMPP: `mysqldump -u root sistem_rab_material >
 sudo mkdir -p /var/www/notago && sudo chown $USER:www-data /var/www/notago
 git clone <repo> /var/www/notago   # atau upload zip
 cd /var/www/notago
-cp deploy/.env.production.example .env   # isi DB_PASSWORD, APP_URL, OPENAI_API_KEY, FONNTE_TOKEN, STORE_*
+cp deploy/env.production.example .env   # isi DB_PASSWORD, APP_URL, OPENAI_API_KEY, FONNTE_TOKEN, STORE_*
 composer install --no-dev --optimize-autoloader
 npm ci && npm run build
 php artisan key:generate
