@@ -26,7 +26,7 @@ class ScanUploadTest extends TestCase
     {
         parent::setUp();
         $this->withoutVite();
-        Queue::fake();
+        config(['receipt_ai.single_dispatch' => 'queue']);
         Storage::fake('private');
         $this->actingAs(User::factory()->create(['role' => 'admin', 'is_active' => true]));
     }
@@ -42,6 +42,7 @@ class ScanUploadTest extends TestCase
 
     public function test_single_note_upload_creates_draft_and_queues_job(): void
     {
+        Queue::fake();
         $this->postJson('/purchase-scans/start', ['receipt' => UploadedFile::fake()->image('nota.jpg')])
             ->assertOk()->assertJson(['success' => true]);
 
@@ -60,6 +61,7 @@ class ScanUploadTest extends TestCase
 
     public function test_multiple_notes_upload_creates_batch_with_files(): void
     {
+        Queue::fake();
         $this->postJson('/purchase-scan-batches/start', [
             'receipts' => [UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')],
         ])->assertOk();
@@ -67,6 +69,41 @@ class ScanUploadTest extends TestCase
         $batch = PurchaseScanBatch::firstOrFail();
         $this->assertSame(2, $batch->files()->count());
         Queue::assertPushed(ProcessPurchaseScanBatchJob::class);
+    }
+
+    public function test_single_note_can_finish_without_a_cron_worker(): void
+    {
+        config(['receipt_ai.single_dispatch' => 'sync', 'services.ocr.driver' => 'openai']);
+        $this->mock(\App\Services\Purchases\Ocr\ReceiptAiPipelineService::class, function ($mock) {
+            $mock->shouldReceive('processStoredFile')->once()->andReturn([
+                'items' => [['nama_material' => 'Semen', 'qty' => 1, 'harga' => 50000, 'subtotal' => 50000]],
+                'grand_total' => 50000,
+                'timings_ms' => ['extraction' => 1200, 'matching' => 5],
+            ]);
+        });
+
+        $response = $this->postJson('/purchase-scans/start', ['receipt' => UploadedFile::fake()->image('nota.jpg')]);
+        $response->assertOk()->assertJson(['success' => true, 'result_ready' => true]);
+        $draft = PurchaseScanDraft::firstOrFail();
+        $this->assertSame('processed', $draft->status);
+        $this->assertSame(1200, data_get($draft->parsed_json, 'meta.timings_ms.extraction'));
+        $response->assertJsonPath('redirect_url', route('purchase-scans.compare', $draft));
+        $this->assertDatabaseCount('jobs', 0);
+    }
+
+    public function test_immediate_scan_failure_is_not_reported_as_success(): void
+    {
+        config(['receipt_ai.single_dispatch' => 'sync', 'services.ocr.driver' => 'openai']);
+        $this->mock(\App\Services\Purchases\Ocr\ReceiptAiPipelineService::class, function ($mock) {
+            $mock->shouldReceive('processStoredFile')->once()->andThrow(new \RuntimeException('API unavailable'));
+        });
+
+        $this->postJson('/purchase-scans/start', ['receipt' => UploadedFile::fake()->image('nota.jpg')])
+            ->assertStatus(500)->assertJson(['success' => false]);
+        $draft = PurchaseScanDraft::firstOrFail();
+        $this->assertSame('failed', $draft->status);
+        $this->assertSame(0, $draft->result_ready);
+        $this->assertDatabaseCount('jobs', 0);
     }
 
     /**

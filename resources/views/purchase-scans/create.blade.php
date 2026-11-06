@@ -465,6 +465,7 @@
     }
 </style>
 
+<script src="{{ asset('js/receipt-image.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('scan-form');
@@ -713,7 +714,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const formData = new FormData();
-            formData.append('receipt', input.files[0]);
+            setProgress(0, 'Menyiapkan foto nota...');
+            formData.append('receipt', await prepareReceiptImage(input.files[0], @json(config('receipt_ai.max_image_side'))));
+            setProgress(5, 'Mengirim nota dan membaca isinya. Mohon tunggu...');
 
             const response = await fetch("{{ route('purchase-scans.start') }}", {
                 method: 'POST',
@@ -739,8 +742,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert(msg);
             }
 
-            setProgress(5, 'File berhasil diupload. Menunggu proses scan...');
-            await pollProgress(result.progress_url);
+            if (result.result_ready) {
+                window.location.href = result.redirect_url;
+            } else {
+                setProgress(5, 'File berhasil diupload. Menunggu proses scan...');
+                await pollProgress(result.progress_url);
+            }
         } catch (error) {
             alert(error.message || 'Terjadi kesalahan.');
             isSubmitting = false;

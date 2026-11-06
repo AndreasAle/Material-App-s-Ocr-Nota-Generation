@@ -70,6 +70,7 @@ class PurchaseScanDraftService
                     'ocr_engine' => 'openai',
                     'model' => $result['model'] ?? config('receipt_ai.model'),
                     'engine' => $result['engine'] ?? 'openai',
+                    'timings_ms' => $result['timings_ms'] ?? [],
                 ],
             ],
             'detected_note_number' => $result['invoice_number'] ?? null,

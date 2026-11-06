@@ -772,11 +772,17 @@ public function start(Request $request): JsonResponse
             'created_by' => Auth::id(),
         ]);
 
-        \App\Jobs\ProcessPurchaseScanJob::dispatch($draft->id);
+        if (config('receipt_ai.single_dispatch') === 'queue') {
+            \App\Jobs\ProcessPurchaseScanJob::dispatch($draft->id);
+        } else {
+            \App\Jobs\ProcessPurchaseScanJob::dispatchSync($draft->id);
+            $draft->refresh();
+        }
 
         return response()->json([
             'success' => true,
             'draft_id' => $draft->id,
+            'result_ready' => (bool) $draft->result_ready,
             'progress_url' => route('purchase-scans.progress', $draft),
             'redirect_url' => route('purchase-scans.compare', $draft),
             'duplicate_warning' => $duplicateWarning,

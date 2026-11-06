@@ -52,6 +52,13 @@ return [
 
     'channels' => [
 
+        'receipt_scan' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/receipt-scan.log'),
+            'level' => 'info',
+            'days' => 7,
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),

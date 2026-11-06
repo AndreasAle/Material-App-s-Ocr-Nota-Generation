@@ -32,6 +32,8 @@ class ProcessPurchaseScanJob implements ShouldQueue
             return;
         }
 
+        $started = hrtime(true);
+        $waitMs = max(0, (int) round($draft->created_at->diffInMilliseconds(now())));
         try {
             $draft->update([
                 'status' => 'processing',
@@ -68,6 +70,14 @@ class ProcessPurchaseScanJob implements ShouldQueue
             ]);
 
             throw $e;
+        } finally {
+            \Illuminate\Support\Facades\Log::channel('receipt_scan')->info('Receipt scan completed', [
+                'draft_id' => $draft->id,
+                'status' => $draft->status,
+                'wait_ms' => $waitMs,
+                'processing_ms' => round((hrtime(true) - $started) / 1e6),
+                'timings_ms' => data_get($draft->parsed_json, 'meta.timings_ms', []),
+            ]);
         }
     }
 }
