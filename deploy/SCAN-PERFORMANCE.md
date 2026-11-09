@@ -42,8 +42,13 @@ detik. Jika `.env` menetapkan nilai lama secara eksplisit, ubah juga nilainya.
    waktu keseluruhan di browser. Uji beberapa nota, termasuk tulisan kecil,
    dan cocokkan qty/harga dengan foto untuk mengecek akurasi setelah kompresi.
 
-Foto besar dikecilkan sebelum upload sesuai `RECEIPT_AI_MAX_IMAGE_SIDE` (default
-1800), JPEG kualitas 90%; foto kecil dan file PDF tidak dikompresi ulang.
+Secara default foto upload dipertahankan tanpa resize/kompresi tambahan agar
+goresan angka tulisan tangan tidak hilang (`RECEIPT_AI_COMPRESS_IMAGES=false`).
+Ini juga menonaktifkan resize cadangan kamera bawaan HP; batas upload tetap 10 MB.
+Kamera langsung tetap menghasilkan JPEG dari stream kamera.
+Kompresi hanya aktif jika `RECEIPT_AI_COMPRESS_IMAGES=true`: foto besar dikecilkan
+sesuai `RECEIPT_AI_MAX_IMAGE_SIDE` (default 1800), JPEG kualitas 90%; foto kecil dan
+file PDF tidak dikompresi ulang.
 Jika konversi gagal atau hasilnya lebih besar, browser memakai file asli.
 Foto yang tersimpan adalah versi upload tersebut. Naikkan batas dimensi jika
 tulisan kecil sulit terbaca. Model dan detail penglihatan AI tetap sama.

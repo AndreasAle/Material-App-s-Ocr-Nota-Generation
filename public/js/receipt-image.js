@@ -1,5 +1,6 @@
 // Keep small camera JPEGs intact; reduce large gallery images before uploading.
-async function prepareReceiptImage(file, maxSide = 1800) {
+async function prepareReceiptImage(file, maxSide = 1800, compress = false) {
+    if (!compress) return file;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return file;
 
     const url = URL.createObjectURL(file);

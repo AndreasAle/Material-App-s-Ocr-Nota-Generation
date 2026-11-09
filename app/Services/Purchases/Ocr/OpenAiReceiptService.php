@@ -147,11 +147,16 @@ When unsure, preserve the original quantity text meaning from the Qty column.
 10. If subtotal is clearly visible, DO NOT recompute it from qty × harga because discount may apply.
 11. Only infer subtotal from qty × harga when the subtotal/total column is missing.
 12. grand_total must be taken from the visible final total at the bottom of the receipt when readable.
-13. If the visible grand total is unclear, use the sum of valid row subtotals.
+13. If the visible grand total is unclear, return 0 and explain in notes. Do not substitute a calculated sum for a visible total.
 14. Do not invent items that are not clearly visible.
-15. If a row is too unclear, omit it instead of guessing.
+15. If a visible item name is readable but a numeric cell is unclear, keep the row and return null for that numeric cell. Do not silently omit purchased items. Omit only rows that cannot be identified as items.
 16. invoice_number, invoice_date, supplier_name may be null when unreadable.
 17. Return only valid JSON that follows the schema exactly.
+18. Transcribe each numeric cell independently from its visible strokes. Compare ambiguous handwritten digits with other digits by the same writer on this receipt. Pay attention to 2/7, 3/9, 1/7 and 4/9; do not select a digit based on an expected price.
+19. Read the rightmost amount column again row by row before returning. Keep each amount aligned with its own item row. A dash in the unit-price column is missing data, not a zero price.
+20. Arithmetic is a consistency check, never evidence of a written digit. Never change a visible subtotal or grand_total merely to make the receipt balance. Mention discrepancies in notes in Indonesian.
+21. confidence describes certainty of the NUMERIC cells, not just the item name. If any numeric digit is ambiguous, use confidence below 0.70 and describe the row and uncertain cell in notes. Do not report high confidence just because the arithmetic balances.
+22. raw_line is a literal transcription of the visible row, preserving original number separators and dashes. Use [?] for unreadable digits; never insert calculated values into raw_line.
 PROMPT;
     }
 

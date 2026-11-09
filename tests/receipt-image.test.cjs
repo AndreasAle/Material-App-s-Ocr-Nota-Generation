@@ -26,7 +26,7 @@ function setup({ width = 4000, height = 3000, blobSize = 100000, broken = false 
 test('large photo is reduced proportionally without exceeding the configured side', async () => {
     const app = setup();
     const original = new File(['x'.repeat(2000000)], 'nota.png', { type: 'image/png' });
-    const result = await app.prepare(original, 1800);
+    const result = await app.prepare(original, 1800, true);
     assert.equal(app.canvas.width, 1800);
     assert.equal(app.canvas.height, 1350);
     assert.equal(result.type, 'image/jpeg');
@@ -38,14 +38,14 @@ test('large photo is reduced proportionally without exceeding the configured sid
 test('small camera images retain their original bytes', async () => {
     const app = setup({ width: 1600, height: 1200 });
     const original = new File(['photo'], 'nota.jpg', { type: 'image/jpeg' });
-    assert.equal(await app.prepare(original), original);
+    assert.equal(await app.prepare(original, 1800, true), original);
     assert.equal(app.revoked(), 1);
 });
 
 test('PDF bypasses image conversion', async () => {
     const app = setup();
     const original = new File(['pdf'], 'nota.pdf', { type: 'application/pdf' });
-    assert.equal(await app.prepare(original), original);
+    assert.equal(await app.prepare(original, 1800, true), original);
     assert.equal(app.revoked(), 0);
 });
 
@@ -53,7 +53,7 @@ test('decode failure and null encoder result preserve the upload and release the
     const original = new File(['photo'], 'nota.jpg', { type: 'image/jpeg' });
     for (const options of [{ broken: true }, { blobSize: null }]) {
         const app = setup(options);
-        assert.equal(await app.prepare(original), original);
+        assert.equal(await app.prepare(original, 1800, true), original);
         assert.equal(app.revoked(), 1);
     }
 });
@@ -61,5 +61,12 @@ test('decode failure and null encoder result preserve the upload and release the
 test('conversion that increases file size keeps original', async () => {
     const app = setup();
     const original = new File(['photo'], 'nota.jpg', { type: 'image/jpeg' });
+    assert.equal(await app.prepare(original, 1800, true), original);
+});
+
+test('default preserves even large handwritten receipts byte for byte', async () => {
+    const app = setup();
+    const original = new File(['x'.repeat(3000000)], 'handwritten.jpg', { type: 'image/jpeg' });
     assert.equal(await app.prepare(original), original);
+    assert.equal(app.revoked(), 0);
 });

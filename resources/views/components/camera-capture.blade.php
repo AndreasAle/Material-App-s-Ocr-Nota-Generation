@@ -133,6 +133,7 @@ function cameraCapture(target, append, max) {
 
         // Foto kamera HP bisa > 10 MB: kecilkan ke sisi terpanjang 2000px
         shrink(file) {
+            if (!@json(config('receipt_ai.compress_images', false))) return Promise.resolve(file);
             return new Promise(resolve => {
                 if (!file.type.startsWith('image/') || file.size < 2 * 1024 * 1024) return resolve(file);
                 const img = new Image();

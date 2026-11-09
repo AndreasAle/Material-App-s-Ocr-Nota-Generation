@@ -62,6 +62,7 @@ class PurchaseScanDraftService
                 'transaction_date' => $result['invoice_date'] ?? null,
                 'supplier_name' => $result['supplier_name'] ?? null,
                 'grand_total' => (int) ($result['grand_total'] ?? 0),
+                'detected_grand_total' => (int) ($result['detected_grand_total'] ?? 0),
                 'items' => array_values($items),
                 'notes' => $result['notes'] ?? [],
                 'meta' => [

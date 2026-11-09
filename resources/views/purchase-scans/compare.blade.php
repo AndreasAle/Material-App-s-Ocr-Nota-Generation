@@ -9,7 +9,7 @@
     $noteDate = $purchaseScanDraft->detected_transaction_date
         ? \Illuminate\Support\Carbon::parse($purchaseScanDraft->detected_transaction_date)->translatedFormat('d M Y')
         : null;
-    $needCheck = collect($items)->filter(fn ($i) => ($i['confidence'] ?? 0) > 0 && ($i['confidence'] ?? 0) < 0.85)->count();
+    $needCheck = collect($items)->filter(fn ($i) => !empty($i['review_reasons']) || ($i['confidence'] ?? 0) < 0.85)->count();
 @endphp
 
 <x-page-header title="Cek Hasil Scan" subtitle="Cocokkan dengan foto nota. Perbaiki yang salah, lalu lanjutkan." :back="route('purchase-scans.show', $purchaseScanDraft)">
@@ -42,7 +42,7 @@
         <p class="mt-1 truncate text-[15px] font-extrabold {{ $noteDate ? 'text-charcoal-900' : 'text-charcoal-400' }}">{{ $noteDate ?: '—' }}</p>
     </div>
     <div class="stat-tile !p-3 col-span-2 sm:col-span-1">
-        <p class="stat-tile-label">Total nota</p>
+        <p class="stat-tile-label">Jumlah subtotal item</p>
         <p class="mt-1 text-[15px] font-extrabold text-emerald-700" data-grand-total>Rp {{ number_format((int) $grandTotal, 0, ',', '.') }}</p>
     </div>
 </div>
@@ -60,6 +60,23 @@
     <li>Baris yang bukan barang (misalnya "Total" atau "Diskon")? Tekan ikon <b>tempat sampah</b>.</li>
     <li>Selesai? Tekan <b>Simpan &amp; Lanjut</b> untuk membuat catatan pembelian dan menambah stok.</li>
 </x-help>
+
+@php($detectedTotal = (int) ($parsed['detected_grand_total'] ?? 0))
+@if($detectedTotal > 0)
+    <div class="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+        <p>Total bawah nota yang dibaca AI: <b>Rp {{ number_format($detectedTotal, 0, ',', '.') }}</b>. Cocokkan juga dengan foto.</p>
+        @if($detectedTotal !== (int) $grandTotal)
+            <p>Jumlah subtotal saat halaman dibuka berbeda dari bacaan total nota. Periksa angka, diskon, dan biaya tambahan; jangan mengubah angka hanya agar total cocok.</p>
+        @endif
+    </div>
+@endif
+
+@if(!empty($parsed['notes']))
+    <details class="mb-4 rounded-xl border border-charcoal-200 bg-white p-3 text-sm">
+        <summary class="cursor-pointer font-semibold">Catatan pembacaan nota</summary>
+        @foreach($parsed['notes'] as $note)<p class="mt-2">{{ $note }}</p>@endforeach
+    </details>
+@endif
 
 <form method="POST" action="{{ route('purchase-scans.compare.update', $purchaseScanDraft) }}" id="compare-form">
     @csrf

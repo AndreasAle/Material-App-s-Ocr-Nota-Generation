@@ -11,6 +11,9 @@ return [
 
     'max_image_side' => (int) env('RECEIPT_AI_MAX_IMAGE_SIDE', 1800),
 
+    // Preserve handwritten digits by default; compression is an explicit trade-off.
+    'compress_images' => (bool) env('RECEIPT_AI_COMPRESS_IMAGES', false),
+
     'timeout' => (int) env('RECEIPT_AI_TIMEOUT', 120),
 
     'debug' => (bool) env('RECEIPT_AI_DEBUG', false),

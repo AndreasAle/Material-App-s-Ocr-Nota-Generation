@@ -2,25 +2,35 @@
 
 @section('content')
 
-<x-page-header title="Barang Masuk" subtitle="Foto nota dari supplier. Aplikasi membaca isinya, Anda cek, lalu stok bertambah otomatis." />
+<div class="mb-5 overflow-hidden rounded-[28px] bg-slate-950 text-white shadow-xl shadow-slate-200/70">
+    <div class="relative px-5 py-6 sm:px-7 sm:py-7">
+        <div class="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-emerald-500/20 blur-3xl"></div>
+        <div class="relative max-w-2xl">
+            <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-200">
+                <span class="h-2 w-2 rounded-full bg-emerald-400"></span>Barang masuk via nota
+            </div>
+            <h1 class="text-2xl font-black tracking-tight sm:text-3xl">Scan nota, stok beres.</h1>
+            <p class="mt-2 max-w-xl text-sm leading-6 text-slate-300">Foto nota supplier dengan jelas. Sistem akan membaca barang, jumlah, dan harga—Anda tinggal cek sebelum menyimpan.</p>
+        </div>
+        <div class="relative mt-5 grid grid-cols-3 gap-2 border-t border-white/10 pt-4 text-xs">
+            <div><span class="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 font-black">1</span><span class="font-semibold">Pilih nota</span></div>
+            <div class="text-center text-slate-300"><span class="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/10 font-black">2</span><span class="font-semibold">Cek hasil</span></div>
+            <div class="text-right text-slate-300"><span class="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/10 font-black">3</span><span class="font-semibold">Simpan stok</span></div>
+        </div>
+    </div>
+</div>
 
-<x-help title="Langkah barang masuk (3 menit)" :open="true">
-    <li><b>Foto nota</b> supplier dengan jelas (rata, tidak miring, tidak gelap).</li>
-    <li>Tunggu aplikasi membaca nota, lalu <b>cek nama barang, jumlah & harga</b>. Perbaiki bila ada yang salah.</li>
-    <li>Tekan <b>Masukkan ke Transaksi</b>, pastikan centang <b>“Barang sudah diterima”</b> aktif, lalu <b>Simpan</b>. Stok langsung bertambah.</li>
-</x-help>
-
-<div class="mb-4 flex justify-end">
+<div class="mb-4 flex justify-stretch sm:justify-end">
 {{-- Mode Switcher --}}
-    <div class="flex items-center gap-1 bg-slate-100 rounded-2xl p-1 flex-shrink-0">
-        <div class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-sm">
+    <div class="flex w-full items-center gap-1 rounded-2xl bg-slate-100 p-1 sm:w-auto sm:flex-shrink-0">
+        <div class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm sm:flex-none">
             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
             </svg>
             1 Nota
         </div>
         <a href="{{ route('purchase-scan-batches.create') }}"
-           class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-slate-500 text-xs font-semibold hover:bg-white hover:text-slate-700 hover:shadow-sm transition-all">
+           class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-500 transition-all hover:bg-white hover:text-slate-700 hover:shadow-sm sm:flex-none">
             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 6.878V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0118 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 004.5 9v.878m13.5-3A2.25 2.25 0 0119.5 9v.878m0 0a2.246 2.246 0 00-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0121 12v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6c0-.98.626-1.813 1.5-2.122"/>
             </svg>
@@ -30,7 +40,7 @@
 </div>
 
 {{-- Step Indicator --}}
-<div class="hidden sm:flex items-center gap-0 mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-3.5 overflow-x-auto">
+<div class="hidden">
     <div class="flex items-center gap-3 flex-shrink-0">
         <div class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-black">1</div>
         <div>
@@ -65,7 +75,7 @@
 </div>
 
 {{-- Main Form Card --}}
-<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl shadow-slate-200/40">
     <form
         id="scan-form"
         method="POST"
@@ -74,10 +84,10 @@
     >
         @csrf
 
-        <div class="grid grid-cols-1 xl:grid-cols-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12">
 
             {{-- ===== LEFT: UPLOAD ZONE ===== --}}
-            <div class="xl:col-span-7 p-4 sm:p-6 border-b border-slate-100 xl:border-b-0 xl:border-r">
+            <div class="border-b border-slate-100 p-4 sm:p-6 lg:col-span-7 lg:border-b-0 lg:border-r">
 
                 {{-- Upload Zone Header --}}
                 <div class="flex items-center gap-2 mb-4">
@@ -87,14 +97,14 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-800">Upload File Nota</h3>
-                        <p class="text-xs text-slate-400">JPG, PNG, WEBP, atau PDF &bull; Maksimal 10MB</p>
+                        <h2 class="text-base font-extrabold text-slate-900">Pilih nota supplier</h2>
+                        <p class="text-xs text-slate-500">Paling cepat: foto langsung dengan kamera</p>
                     </div>
                 </div>
 
                 {{-- Foto langsung dari kamera (HP / webcam) atau pilih file --}}
                 <x-camera-capture target="receipt" class="mb-3" />
-                <p class="mb-3 hidden text-center text-xs font-semibold uppercase tracking-wider text-charcoal-400 sm:block">atau seret file nota ke sini</p>
+                <div class="my-4 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400"><span class="h-px flex-1 bg-slate-200"></span><span>atau upload file</span><span class="h-px flex-1 bg-slate-200"></span></div>
 
                 {{-- Dropzone --}}
                 <div
@@ -110,11 +120,11 @@
                         required
                     >
 
-                    <div class="pointer-events-none flex min-h-[220px] sm:min-h-[260px] flex-col items-center justify-center px-6 py-8 sm:py-10 text-center">
+                    <div class="pointer-events-none flex min-h-[150px] flex-col items-center justify-center px-5 py-6 text-center sm:min-h-[190px]">
                         {{-- Scanner icon --}}
-                        <div class="relative mb-5">
-                            <div class="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg group-hover:bg-emerald-700 transition-colors duration-300">
-                                <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <div class="relative mb-3">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg transition-colors duration-300 group-hover:bg-emerald-700">
+                                <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75z"/>
                                 </svg>
@@ -126,12 +136,12 @@
                         <h3 class="text-base font-bold text-slate-900 mb-1">
                             <span class="sm:hidden">Ketuk untuk pilih file nota</span><span class="hidden sm:inline">Drag &amp; Drop File Nota</span>
                         </h3>
-                        <p class="text-sm text-slate-400 max-w-xs leading-relaxed mb-5">
+                        <p class="mb-3 max-w-xs text-xs leading-relaxed text-slate-400 sm:text-sm">
                             <span class="sm:hidden">Foto yang sudah ada di galeri, atau PDF</span><span class="hidden sm:inline">atau klik area ini untuk pilih file dari komputer Anda</span>
                         </p>
 
                         {{-- Format badges --}}
-                        <div class="flex flex-wrap items-center justify-center gap-2 mb-5">
+                        <div class="mb-4 hidden flex-wrap items-center justify-center gap-2 sm:flex">
                             @foreach(['JPG','PNG','WEBP','PDF'] as $fmt)
                             <span class="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-500 shadow-sm">{{ $fmt }}</span>
                             @endforeach
@@ -195,7 +205,12 @@
                 </div>
 
                 {{-- Tips Panel --}}
-                <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <details class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-slate-700">
+                        <span class="flex items-center gap-2"><span class="text-amber-500">●</span>Tips agar hasil scan akurat</span>
+                        <span class="text-xs font-semibold text-slate-400">Lihat tips</span>
+                    </summary>
+                    <div class="mt-4 border-t border-slate-200 pt-4">
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="h-4 w-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/>
@@ -240,11 +255,12 @@
                             <span class="font-bold">Catatan:</span> Hasil scan OCR bersifat <span class="font-semibold">draft</span>. Admin tetap perlu memeriksa item, qty, harga, supplier, dan total sebelum diubah menjadi transaksi pembelian final.
                         </p>
                     </div>
-                </div>
+                    </div>
+                </details>
             </div>
 
             {{-- ===== RIGHT: PREVIEW PANEL ===== --}}
-            <div class="xl:col-span-5 bg-slate-50/60 p-6">
+            <div class="bg-slate-50/70 p-4 sm:p-6 lg:col-span-5">
                 <div class="flex items-start justify-between gap-3 mb-4">
                     <div class="flex items-center gap-2">
                         <div class="w-7 h-7 rounded-lg bg-slate-200 flex items-center justify-center flex-shrink-0">
@@ -265,7 +281,7 @@
                 </div>
 
                 {{-- Empty State --}}
-                <div id="empty-preview" class="flex min-h-[400px] items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white px-6 py-10 text-center">
+                <div id="empty-preview" class="flex min-h-[240px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center lg:min-h-[420px]">
                     <div>
                         <div class="mx-auto mb-4 w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
                             <svg class="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -326,7 +342,7 @@
         </div>
 
         {{-- Action Footer --}}
-        <div class="border-t border-slate-200 bg-white px-6 py-4">
+        <div class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-start gap-2 text-xs text-slate-500">
                     <svg class="h-4 w-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -348,7 +364,8 @@
                     <button
                         type="submit"
                         id="submit-button"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800 transition-all disabled:cursor-not-allowed disabled:opacity-70"
+                        class="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-700 active:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                        disabled
                     >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5z"/>
@@ -465,7 +482,7 @@
     }
 </style>
 
-<script src="{{ asset('js/receipt-image.js') }}"></script>
+<script src="{{ asset('js/receipt-image.js') }}?v=2"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('scan-form');
@@ -530,6 +547,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fileInfoBox.classList.add('hidden');
         previewBadge.classList.add('hidden');
         emptyPreview.classList.remove('hidden');
+        submitButton.disabled = true;
 
         fileName.textContent = '-';
         fileSize.textContent = '-';
@@ -540,6 +558,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showPreview(file) {
         if (!file) { resetPreview(); return; }
+
+        submitButton.disabled = false;
 
         fileName.textContent = file.name || '-';
         fileSize.textContent = formatFileSize(file.size);
@@ -715,7 +735,7 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const formData = new FormData();
             setProgress(0, 'Menyiapkan foto nota...');
-            formData.append('receipt', await prepareReceiptImage(input.files[0], @json(config('receipt_ai.max_image_side'))));
+            formData.append('receipt', await prepareReceiptImage(input.files[0], @json(config('receipt_ai.max_image_side')), @json(config('receipt_ai.compress_images'))));
             setProgress(5, 'Mengirim nota dan membaca isinya. Mohon tunggu...');
 
             const response = await fetch("{{ route('purchase-scans.start') }}", {

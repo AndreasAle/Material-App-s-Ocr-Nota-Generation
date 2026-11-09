@@ -8,7 +8,8 @@
      * @var string|null $fileLabel  label asal nota (mode beberapa nota)
      */
     $conf = (float) ($item['confidence'] ?? 0);
-    $level = $conf >= 0.85 ? 'ok' : ($conf >= 0.65 ? 'mid' : ($conf > 0 ? 'low' : 'none'));
+    $reviewReasons = $item['review_reasons'] ?? [];
+    $level = !empty($reviewReasons) ? 'mid' : ($conf >= 0.85 ? 'ok' : ($conf >= 0.65 ? 'mid' : 'low'));
     $accent = ['ok' => 'border-l-emerald-500', 'mid' => 'border-l-amber-400', 'low' => 'border-l-rose-500', 'none' => 'border-l-charcoal-300'][$level];
     $matchId = $item['match_material_id'] ?? ($item['match']['material_id'] ?? '');
     $qtyValue = rtrim(rtrim(number_format((float) ($item['qty'] ?? 0), 2, '.', ''), '0'), '.');
@@ -28,7 +29,7 @@
         <span class="inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg bg-charcoal-900 px-1.5 text-xs font-extrabold text-white">{{ $index + 1 }}</span>
 
         @if($level === 'ok')
-            <span class="badge badge-success">Terbaca jelas</span>
+            <span class="badge badge-success">Tetap cocokkan angka</span>
         @elseif($level === 'mid')
             <span class="badge badge-warning">Mohon dicek</span>
         @elseif($level === 'low')
@@ -54,8 +55,14 @@
     {{-- Teks asli dari nota --}}
     @if(!empty($item['raw_line']))
         <p class="border-b border-charcoal-100 px-3 py-2 font-mono text-xs leading-5 text-charcoal-500">
-            <span class="font-sans font-semibold text-charcoal-400">Di nota:</span> {{ $item['raw_line'] }}
+            <span class="font-sans font-semibold text-charcoal-400">Bacaan AI:</span> {{ $item['raw_line'] }}
         </p>
+    @endif
+
+    @if(!empty($reviewReasons))
+        <div class="border-b border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            @foreach($reviewReasons as $reason)<p>{{ $reason }}</p>@endforeach
+        </div>
     @endif
 
     {{-- Isian --}}

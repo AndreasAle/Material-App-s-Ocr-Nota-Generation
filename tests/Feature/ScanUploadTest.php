@@ -78,6 +78,7 @@ class ScanUploadTest extends TestCase
             $mock->shouldReceive('processStoredFile')->once()->andReturn([
                 'items' => [['nama_material' => 'Semen', 'qty' => 1, 'harga' => 50000, 'subtotal' => 50000]],
                 'grand_total' => 50000,
+                'detected_grand_total' => 55000,
                 'timings_ms' => ['extraction' => 1200, 'matching' => 5],
             ]);
         });
@@ -89,6 +90,8 @@ class ScanUploadTest extends TestCase
         $this->assertSame(1200, data_get($draft->parsed_json, 'meta.timings_ms.extraction'));
         $response->assertJsonPath('redirect_url', route('purchase-scans.compare', $draft));
         $this->assertDatabaseCount('jobs', 0);
+        $this->get(route('purchase-scans.compare', $draft))->assertOk()
+            ->assertSee('Rp 55.000')->assertSee('berbeda dari bacaan total nota');
     }
 
     public function test_immediate_scan_failure_is_not_reported_as_success(): void

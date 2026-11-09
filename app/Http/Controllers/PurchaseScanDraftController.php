@@ -716,6 +716,7 @@ protected function buildCompareItems(array $items): array
                 ),
                 'confidence' => (float) ($item['confidence'] ?? 0),
                 'match_material_id' => $match['material_id'] ?? null,
+                'review_reasons' => $item['review_reasons'] ?? [],
                 'match_status' => $match['status'] ?? 'manual_check',
                 'match_source' => $match['source'] ?? 'fuzzy',
             ];

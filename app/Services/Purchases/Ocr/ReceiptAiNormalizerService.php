@@ -30,9 +30,8 @@ class ReceiptAiNormalizerService
         } else {
             $diff = abs($grandTotal - $itemsTotal);
 
-            if ($itemsTotal > 0 && $diff > 10000) {
+            if ($itemsTotal > 0 && $diff > 0) {
                 $notes[] = 'Grand total mismatch with items sum';
-                $grandTotal = $itemsTotal;
             }
         }
 
@@ -43,6 +42,7 @@ class ReceiptAiNormalizerService
             'invoice_date' => $this->nullableString($structured['invoice_date'] ?? null),
             'supplier_name' => $this->nullableString($structured['supplier_name'] ?? null),
             'grand_total' => $grandTotal,
+            'detected_grand_total' => $this->normalizeMoney($structured['grand_total'] ?? 0),
             'items' => $items,
             'notes' => $notes,
             'raw_response_text' => $payload['raw_response_text'] ?? null,
@@ -64,6 +64,13 @@ class ReceiptAiNormalizerService
         }
 
         $notes = [];
+        $reviewReasons = [];
+        if ($this->normalizeFloat($item['confidence'] ?? 0) < 0.85) {
+            $reviewReasons[] = 'Angka hasil baca AI belum pasti. Cocokkan dengan foto.';
+        }
+        if ($qty <= 0) {
+            $reviewReasons[] = 'Jumlah barang belum terbaca.';
+        }
         $expectedSubtotal = 0;
 
         if ($qty > 0 && $harga > 0) {
@@ -74,12 +81,14 @@ class ReceiptAiNormalizerService
         if ($subtotal <= 0 && $expectedSubtotal > 0) {
             $subtotal = $expectedSubtotal;
             $notes[] = 'Subtotal inferred from qty x harga';
+            $reviewReasons[] = 'Subtotal dihitung dari jumlah × harga, bukan dibaca dari nota.';
         }
 
         // hanya infer harga dari subtotal kalau harga kosong
         if ($subtotal > 0 && $qty > 0 && $harga <= 0) {
             $harga = (int) round($subtotal / $qty);
             $notes[] = 'Harga inferred from subtotal / qty';
+            $reviewReasons[] = 'Harga satuan dihitung dari subtotal ÷ jumlah.';
         }
 
         // kalau ada diskon, jangan anggap qty x harga harus sama dengan subtotal
@@ -88,9 +97,14 @@ class ReceiptAiNormalizerService
         } elseif ($subtotal > 0 && $qty > 0 && $harga > 0) {
             $diff = abs($expectedSubtotal - $subtotal);
 
-            if ($diff > 1000) {
+            if ($diff > 1) {
                 $notes[] = 'Mismatch qty x harga vs subtotal';
+                $reviewReasons[] = 'Jumlah × harga berbeda dari subtotal. Periksa angka dan diskon.';
             }
+        }
+
+        if ($subtotal <= 0) {
+            $reviewReasons[] = 'Subtotal belum terbaca. Isi sesuai foto nota.';
         }
 
         return [
@@ -105,16 +119,13 @@ class ReceiptAiNormalizerService
             'confidence' => $this->normalizeFloat($item['confidence'] ?? 0),
             'match' => null,
             'normalizer_notes' => $notes,
+            'review_reasons' => $reviewReasons,
         ];
     }
 
     protected function isValidItem(array $item): bool
     {
         if ($item['nama_material'] === '') {
-            return false;
-        }
-
-        if ($item['qty'] <= 0 && $item['harga'] <= 0 && $item['subtotal'] <= 0) {
             return false;
         }
 
