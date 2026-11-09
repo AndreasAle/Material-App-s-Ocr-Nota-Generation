@@ -5,14 +5,18 @@
 @section('content')
 @php $qty = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, ',', '.'), '0'), ','); @endphp
 
-<x-page-header title="Stok Barang" subtitle="Sisa barang di gudang. Bertambah saat barang masuk, berkurang saat terjual.">
-    <x-slot name="actions">
-        <a href="{{ route('stock.create') }}" class="btn-primary">
-            <x-icon name="plus" class="h-5 w-5" stroke="2.2" />
-            Koreksi / Input Stok
-        </a>
-    </x-slot>
-</x-page-header>
+<div class="stock-dashboard">
+<div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="min-w-0">
+        <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-600">Inventori</p>
+        <h1 class="mt-1 text-xl font-extrabold tracking-tight text-charcoal-900 sm:text-2xl">Stok Barang</h1>
+        <p class="mt-1 text-xs leading-5 text-charcoal-500 sm:text-sm">Pantau ketersediaan barang dan tindak lanjuti stok yang mulai menipis.</p>
+    </div>
+    <a href="{{ route('stock.create') }}" class="btn-primary shrink-0">
+        <x-icon name="plus" class="h-4 w-4" stroke="2.2" />
+        Input / Koreksi Stok
+    </a>
+</div>
 
 <x-help title="Kapan stok berubah?">
     <li><b>Bertambah otomatis</b> saat Anda menyimpan nota supplier dengan centang “Barang sudah diterima”.</li>
@@ -22,38 +26,40 @@
 </x-help>
 
 {{-- Ringkasan (bisa diketuk sebagai filter) --}}
-<div class="mb-4 grid grid-cols-3 gap-2 sm:gap-3">
-    <a href="{{ route('stock.index') }}" class="stat-tile !p-3 {{ $alert !== '1' ? 'ring-2 ring-brand-500' : '' }}">
-        <p class="text-[11px] font-bold uppercase tracking-wider text-charcoal-500">Semua</p>
-        <p class="mt-1 text-xl font-extrabold text-charcoal-900">{{ number_format($totalMaterials) }}</p>
+<div class="mb-4 grid grid-cols-3 gap-2.5 sm:gap-3">
+    <a href="{{ route('stock.index') }}" class="stock-summary {{ $alert !== '1' ? 'active' : '' }}">
+        <span class="stock-summary-icon bg-brand-50 text-brand-600"><x-icon name="box" /></span>
+        <span><span class="stock-summary-label">Total barang</span><strong class="stock-summary-value">{{ number_format($totalMaterials) }}</strong></span>
     </a>
-    <a href="{{ route('stock.index', ['alert' => '1']) }}" class="stat-tile !p-3 {{ $lowStockCount > 0 ? 'border-amber-200 bg-amber-50' : '' }} {{ $alert === '1' ? 'ring-2 ring-amber-500' : '' }}">
-        <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Menipis</p>
-        <p class="mt-1 text-xl font-extrabold text-amber-700">{{ $lowStockCount }}</p>
+    <a href="{{ route('stock.index', ['alert' => '1']) }}" class="stock-summary {{ $alert === '1' ? 'active-warning' : '' }}">
+        <span class="stock-summary-icon bg-amber-50 text-amber-600"><x-icon name="alert" /></span>
+        <span><span class="stock-summary-label">Menipis</span><strong class="stock-summary-value text-amber-700">{{ $lowStockCount }}</strong></span>
     </a>
-    <div class="stat-tile !p-3 {{ $zeroStockCount > 0 ? 'border-rose-200 bg-rose-50' : '' }}">
-        <p class="text-[11px] font-bold uppercase tracking-wider text-rose-700">Habis</p>
-        <p class="mt-1 text-xl font-extrabold text-rose-700">{{ $zeroStockCount }}</p>
+    <div class="stock-summary">
+        <span class="stock-summary-icon bg-rose-50 text-rose-600"><x-icon name="box" /></span>
+        <span><span class="stock-summary-label">Stok habis</span><strong class="stock-summary-value text-rose-700">{{ $zeroStockCount }}</strong></span>
     </div>
 </div>
 
 {{-- Cari --}}
-<form method="GET" action="{{ route('stock.index') }}" class="mb-3 flex gap-2">
+<div class="mb-5 rounded-2xl border border-charcoal-200/80 bg-white p-3 shadow-sm sm:p-4">
+<form method="GET" action="{{ route('stock.index') }}" class="flex gap-2">
     <div class="relative flex-1">
-        <x-icon name="cube" class="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-charcoal-400" />
-        <input type="search" name="search" value="{{ $search }}" placeholder="Cari barang…" class="form-input pl-11">
+        <x-icon name="cube" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-400" />
+        <input type="search" name="search" value="{{ $search }}" placeholder="Cari nama atau kode barang" class="form-input pl-10">
     </div>
     @if($alert === '1')<input type="hidden" name="alert" value="1">@endif
-    <button class="btn-secondary shrink-0">Cari</button>
+    <button class="btn-primary shrink-0 !px-4">Cari</button>
 </form>
 @if($categories->isNotEmpty())
-<div class="-mx-3 mb-4 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+<div class="mt-3 flex gap-2 overflow-x-auto pb-1">
     <a href="{{ route('stock.index', array_filter(['search' => $search, 'alert' => $alert])) }}" class="chip shrink-0 {{ ! $categoryId ? '!bg-charcoal-900 !text-white' : '' }}">Semua kategori</a>
     @foreach ($categories as $cat)
         <a href="{{ route('stock.index', array_filter(['search' => $search, 'alert' => $alert, 'category_id' => $cat->id])) }}" class="chip shrink-0 {{ (string) $categoryId === (string) $cat->id ? '!bg-brand-600 !text-white' : '' }}">{{ $cat->name }}</a>
     @endforeach
 </div>
 @endif
+</div>
 
 @if ($paginated->isEmpty())
     <div class="card px-5 py-12 text-center">
@@ -72,15 +78,16 @@
                 $pct = $m->minimum_stock > 0 ? min(100, max(4, $balance / ($m->minimum_stock * 2) * 100)) : ($isEmpty ? 4 : 100);
                 $bar = $isEmpty ? 'bg-rose-500' : ($isLow ? 'bg-amber-500' : 'bg-emerald-500');
             @endphp
-            <a href="{{ route('stock.show', $m) }}" class="card block p-3.5 active:bg-charcoal-50">
+            <a href="{{ route('stock.show', $m) }}" class="stock-mobile-card">
                 <div class="flex items-start gap-3">
+                    <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $isEmpty ? 'bg-rose-50 text-rose-600' : ($isLow ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600') }}"><x-icon name="box" class="h-4 w-4" /></span>
                     <div class="min-w-0 flex-1">
-                        <p class="truncate text-[15px] font-bold text-charcoal-900">{{ $m->name }}</p>
-                        <p class="text-xs text-charcoal-500">{{ $m->category?->name ?? 'Tanpa kategori' }}{{ $m->minimum_stock !== null ? ' · min ' . $qty($m->minimum_stock) : '' }}</p>
+                        <div class="flex items-center gap-2"><p class="truncate text-sm font-bold text-charcoal-900">{{ $m->name }}</p><span class="{{ $isEmpty ? 'badge-danger' : ($isLow ? 'badge-warning' : 'badge-success') }} !px-2 !py-0.5 !text-[10px]">{{ $isEmpty ? 'Habis' : ($isLow ? 'Menipis' : 'Aman') }}</span></div>
+                        <p class="mt-0.5 text-[11px] text-charcoal-500">{{ $m->category?->name ?? 'Tanpa kategori' }}{{ $m->minimum_stock !== null ? ' · Minimum ' . $qty($m->minimum_stock) : '' }}</p>
                     </div>
                     <div class="shrink-0 text-right">
-                        <p class="text-lg font-extrabold leading-none {{ $isEmpty ? 'text-rose-600' : ($isLow ? 'text-amber-600' : 'text-charcoal-900') }}">{{ $qty($balance) }}</p>
-                        <p class="mt-1 text-xs text-charcoal-500">{{ $m->unit?->name }}</p>
+                        <p class="text-base font-extrabold leading-none {{ $isEmpty ? 'text-rose-600' : ($isLow ? 'text-amber-600' : 'text-charcoal-900') }}">{{ $qty($balance) }}</p>
+                        <p class="mt-1 text-[11px] text-charcoal-500">{{ $m->unit?->name }}</p>
                     </div>
                 </div>
                 <div class="mt-2.5 h-1.5 rounded-full bg-charcoal-100"><div class="h-1.5 rounded-full {{ $bar }}" style="width: {{ $pct }}%"></div></div>
@@ -88,7 +95,7 @@
         @endforeach
     </div>
 
-    <x-data-card class="hidden md:block" title="Daftar Stok" subtitle="{{ $paginated->total() }} barang">
+    <x-data-card class="hidden md:block" title="Daftar Inventori" subtitle="{{ $paginated->total() }} barang tercatat">
         <div class="overflow-x-auto">
             <table class="tbl">
                 <thead>
@@ -137,4 +144,23 @@
 
     <div class="mt-4">{{ $paginated->links() }}</div>
 @endif
+</div>
+
+<style>
+    .stock-dashboard .stock-summary { display:flex; min-width:0; align-items:center; gap:.65rem; border:1px solid rgb(226 232 240); border-radius:1rem; background:#fff; padding:.8rem; box-shadow:0 1px 2px rgb(15 23 42 / .04); }
+    .stock-dashboard .stock-summary.active { border-color:rgb(251 146 60); box-shadow:inset 0 0 0 1px rgb(251 146 60 / .35); }
+    .stock-dashboard .stock-summary.active-warning { border-color:rgb(245 158 11); box-shadow:inset 0 0 0 1px rgb(245 158 11 / .3); }
+    .stock-dashboard .stock-summary-icon { display:inline-flex; width:2.25rem; height:2.25rem; flex:none; align-items:center; justify-content:center; border-radius:.75rem; }
+    .stock-dashboard .stock-summary-icon svg { width:1rem; height:1rem; }
+    .stock-dashboard .stock-summary-label { display:block; white-space:nowrap; font-size:.65rem; line-height:.9rem; font-weight:600; color:rgb(100 116 139); }
+    .stock-dashboard .stock-summary-value { display:block; margin-top:.1rem; font-size:1rem; line-height:1.25rem; font-weight:800; }
+    .stock-dashboard .stock-mobile-card { display:block; border:1px solid rgb(226 232 240); border-radius:1rem; background:#fff; padding:.8rem; box-shadow:0 1px 2px rgb(15 23 42 / .04); }
+    .stock-dashboard .tbl th { background:rgb(248 250 252); font-size:.68rem; letter-spacing:.04em; color:rgb(100 116 139); }
+    .stock-dashboard .tbl td { font-size:.78rem; }
+    @media (max-width: 420px) {
+        .stock-dashboard .stock-summary { flex-direction:column; align-items:flex-start; gap:.4rem; padding:.7rem; }
+        .stock-dashboard .stock-summary-icon { width:1.9rem; height:1.9rem; }
+        .stock-dashboard .stock-summary-label { white-space:normal; }
+    }
+</style>
 @endsection
