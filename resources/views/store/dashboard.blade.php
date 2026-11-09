@@ -109,7 +109,7 @@
 {{-- Perlu dikerjakan --}}
 <div class="card mb-4 overflow-hidden">
     <div class="flex items-center justify-between border-b border-charcoal-100 px-4 py-3">
-        <h2 class="text-sm font-bold text-charcoal-900">Perlu diperiksa</h2>
+        <h2 class="text-xs font-bold text-charcoal-900">Perlu diperiksa</h2>
         <span class="text-[11px] text-charcoal-400">{{ count($tasks) }} tugas</span>
     </div>
     @forelse($tasks as $task)
@@ -236,8 +236,12 @@
     .store-dashboard .action-tile.primary .action-tile-desc { color: rgb(132 145 162); font-size: .65rem; line-height: .9rem; }
     .store-dashboard .stat-tile { padding: .85rem; box-shadow: none; }
     .store-dashboard .stat-tile-value { font-size: 1rem; line-height: 1.4rem; }
-    .store-dashboard .task-item { min-height: 58px; padding-top: .65rem; padding-bottom: .65rem; }
-    .store-dashboard .task-icon { width: 2.25rem; height: 2.25rem; border-radius: .75rem; }
+    .store-dashboard .task-item { min-height: 52px; gap: .65rem; padding: .55rem .85rem; }
+    .store-dashboard .task-icon { width: 2rem; height: 2rem; border-radius: .65rem; }
+    .store-dashboard .task-icon svg { width: 1rem; height: 1rem; }
+    .store-dashboard .task-title { font-size: .75rem; line-height: 1rem; }
+    .store-dashboard .task-desc { margin-top: .1rem; font-size: .68rem; line-height: .95rem; }
+    .store-dashboard .task-count { min-width: 1.65rem; padding: .2rem .45rem; font-size: .7rem; line-height: 1rem; }
     @media (max-width: 380px) {
         .store-dashboard .action-tile-title { font-size: .68rem; }
         .store-dashboard .action-tile { padding-left: .2rem; padding-right: .2rem; }
