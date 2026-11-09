@@ -16,36 +16,47 @@
     ];
 @endphp
 
+<div class="store-dashboard">
+
 {{-- Sapaan --}}
-<div class="mb-4 overflow-hidden rounded-2xl bg-charcoal-900 text-white">
-    <div class="hazard-strip"></div>
-    <div class="flex items-center justify-between gap-3 px-4 py-4 sm:px-5">
+<div class="mb-5 flex items-center justify-between gap-4 px-1 py-1">
+    <div class="min-w-0">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-charcoal-400">{{ now()->translatedFormat('l, d F Y') }}</p>
+        <h1 class="mt-1 truncate text-lg font-extrabold tracking-tight text-charcoal-900 sm:text-xl">{{ $greet }}, {{ $firstName }}</h1>
+        <p class="mt-0.5 text-xs text-charcoal-500">
+            @if(count($tasks) > 0)
+                {{ count($tasks) }} hal perlu diperiksa hari ini
+            @else
+                Semua aktivitas toko aman
+            @endif
+        </p>
+    </div>
+    <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600 ring-1 ring-brand-100">
+        <x-icon name="helmet" class="h-5 w-5" />
+    </span>
+</div>
+
+{{-- Ringkasan utama --}}
+<div class="mb-4 rounded-2xl bg-charcoal-900 px-4 py-4 text-white shadow-sm sm:px-5">
+    <div class="flex items-end justify-between gap-3">
         <div class="min-w-0">
-            <p class="text-xs font-semibold uppercase tracking-wider text-brand-300">{{ now()->translatedFormat('l, d F Y') }}</p>
-            <h1 class="mt-1 text-xl font-extrabold leading-tight sm:text-2xl">{{ $greet }}, {{ $firstName }} 👷</h1>
-            <p class="mt-1 text-sm text-charcoal-300">
-                @if(count($tasks) > 0)
-                    Ada <b class="text-white">{{ count($tasks) }} hal</b> yang perlu dicek hari ini.
-                @else
-                    Semua beres. Tinggal melayani pembeli.
-                @endif
-            </p>
+            <p class="text-[11px] font-semibold text-charcoal-300">Penjualan hari ini</p>
+            <p class="mt-1 text-xl font-extrabold tracking-tight sm:text-2xl">{{ $rp($summary['omzet']) }}</p>
+            <p class="mt-1 text-xs text-charcoal-300">{{ $summary['transactions'] }} transaksi</p>
         </div>
-        <span class="hidden h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-500 sm:inline-flex">
-            <x-icon name="helmet" class="h-8 w-8" />
-        </span>
+        <div class="text-right"><p class="text-[11px] text-charcoal-300">Untung kotor</p><p class="mt-1 text-sm font-bold text-emerald-300">{{ $rp($summary['gross_profit']) }}</p></div>
     </div>
 </div>
 
 {{-- Persiapan awal: hilang setelah semua langkah selesai --}}
 @if($setupDone < $setupTotal && auth()->user()->isAdmin())
-<div class="card mb-4 overflow-hidden" x-data="{ open: true }">
-    <button type="button" @click="open = !open" class="flex w-full items-center gap-3 px-4 py-3.5 text-left">
-        <span class="relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-extrabold text-brand-700">
+<div class="card mb-4 overflow-hidden" x-data="{ open: false }">
+    <button type="button" @click="open = !open" class="flex w-full items-center gap-3 px-4 py-3 text-left">
+        <span class="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-extrabold text-brand-700">
             {{ $setupDone }}/{{ $setupTotal }}
         </span>
         <span class="min-w-0 flex-1">
-            <span class="block text-[15px] font-bold text-charcoal-900">Siapkan toko Anda</span>
+            <span class="block text-sm font-bold text-charcoal-900">Siapkan toko Anda</span>
             <span class="block text-xs text-charcoal-500">Selesaikan langkah ini sekali saja supaya semua fitur berjalan.</span>
         </span>
         <x-icon name="chevron" class="h-5 w-5 shrink-0 text-charcoal-400 transition-transform" ::class="open ? 'rotate-90' : ''" />
@@ -73,30 +84,33 @@
 @endif
 
 {{-- Aksi utama --}}
-<div class="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+<div class="mb-5">
+    <div class="mb-2 flex items-center justify-between px-1"><h2 class="text-sm font-bold text-charcoal-900">Menu cepat</h2><span class="text-[11px] text-charcoal-400">Aktivitas utama</span></div>
+    <div class="grid grid-cols-4 gap-2 sm:gap-3">
     <a href="{{ route('store.pos') }}" class="action-tile primary">
         <span class="action-tile-icon"><x-icon name="cart" /></span>
-        <span><span class="action-tile-title block">Jual</span><span class="action-tile-desc block">Buka kasir untuk pembeli</span></span>
+        <span><span class="action-tile-title block">Jual</span><span class="action-tile-desc block">Kasir</span></span>
     </a>
     <a href="{{ route('purchase-scans.create') }}" class="action-tile">
         <span class="action-tile-icon"><x-icon name="camera" /></span>
-        <span><span class="action-tile-title block">Barang Masuk</span><span class="action-tile-desc block">Foto nota supplier → stok bertambah</span></span>
+        <span><span class="action-tile-title block">Barang Masuk</span><span class="action-tile-desc block">Scan nota</span></span>
     </a>
     <a href="{{ route('store.customers.index', ['filter' => 'bon']) }}" class="action-tile">
         <span class="action-tile-icon"><x-icon name="wallet" /></span>
-        <span><span class="action-tile-title block">Terima Bayar Bon</span><span class="action-tile-desc block">Bon belum lunas {{ $rp($month['receivable_total']) }}</span></span>
+        <span><span class="action-tile-title block">Bayar Bon</span><span class="action-tile-desc block">Tagihan</span></span>
     </a>
     <a href="{{ route('stock.index') }}" class="action-tile">
         <span class="action-tile-icon"><x-icon name="box" /></span>
-        <span><span class="action-tile-title block">Cek Stok</span><span class="action-tile-desc block">Sisa barang di gudang</span></span>
+        <span><span class="action-tile-title block">Cek Stok</span><span class="action-tile-desc block">Gudang</span></span>
     </a>
+    </div>
 </div>
 
 {{-- Perlu dikerjakan --}}
 <div class="card mb-4 overflow-hidden">
     <div class="flex items-center justify-between border-b border-charcoal-100 px-4 py-3">
-        <h2 class="text-[15px] font-bold text-charcoal-900">Perlu dikerjakan</h2>
-        <span class="text-xs text-charcoal-500">Ketuk untuk menyelesaikan</span>
+        <h2 class="text-sm font-bold text-charcoal-900">Perlu diperiksa</h2>
+        <span class="text-[11px] text-charcoal-400">{{ count($tasks) }} tugas</span>
     </div>
     @forelse($tasks as $task)
         <a href="{{ $task['url'] }}" class="task-item">
@@ -120,7 +134,7 @@
 </div>
 
 {{-- Angka hari ini --}}
-<p class="section-label mb-2 mt-6">Hari ini</p>
+<p class="section-label mb-2 mt-5">Detail hari ini</p>
 <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
     <div class="stat-tile">
         <p class="stat-tile-label"><span class="stat-tile-icon"><x-icon name="receipt" /></span>Penjualan</p>
@@ -199,4 +213,34 @@
         <li><b>Sore/malam</b> → buka <b>Beranda</b> ini: lihat untung hari ini dan selesaikan daftar <b>Perlu dikerjakan</b>.</li>
     </x-help>
 </div>
+</div>
+
+<style>
+    .store-dashboard .action-tile {
+        min-height: 102px;
+        align-items: center;
+        justify-content: flex-start;
+        gap: .55rem;
+        padding: .75rem .4rem;
+        text-align: center;
+        border-radius: 1rem;
+        box-shadow: none;
+    }
+    .store-dashboard .action-tile.primary { border-color: rgb(254 215 170); background: white; color: inherit; }
+    .store-dashboard .action-tile-icon,
+    .store-dashboard .action-tile.primary .action-tile-icon { width: 2.5rem; height: 2.5rem; border-radius: .8rem; background: rgb(255 247 237); color: rgb(234 88 12); }
+    .store-dashboard .action-tile-icon svg { width: 1.25rem; height: 1.25rem; }
+    .store-dashboard .action-tile-title,
+    .store-dashboard .action-tile.primary .action-tile-title { color: rgb(31 37 47); font-size: .75rem; line-height: 1rem; }
+    .store-dashboard .action-tile-desc,
+    .store-dashboard .action-tile.primary .action-tile-desc { color: rgb(132 145 162); font-size: .65rem; line-height: .9rem; }
+    .store-dashboard .stat-tile { padding: .85rem; box-shadow: none; }
+    .store-dashboard .stat-tile-value { font-size: 1rem; line-height: 1.4rem; }
+    .store-dashboard .task-item { min-height: 58px; padding-top: .65rem; padding-bottom: .65rem; }
+    .store-dashboard .task-icon { width: 2.25rem; height: 2.25rem; border-radius: .75rem; }
+    @media (max-width: 380px) {
+        .store-dashboard .action-tile-title { font-size: .68rem; }
+        .store-dashboard .action-tile { padding-left: .2rem; padding-right: .2rem; }
+    }
+</style>
 @endsection
