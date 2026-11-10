@@ -94,16 +94,16 @@
     </div>
 
     {{-- Bar total: hanya total + tombol Bayar, isian pembayaran ada di lembar Bayar (tidak menutupi apa pun) --}}
-    <div class="sticky bottom-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom)+8px)] z-30 mt-4 lg:bottom-4">
-        <div class="flex items-center gap-3 rounded-2xl bg-charcoal-900 px-4 py-2.5 text-white shadow-xl shadow-charcoal-900/25">
+    <div x-show="cart.length" x-cloak class="mt-3 lg:sticky lg:bottom-4 lg:z-30 lg:mt-4">
+        <div class="flex items-center gap-3 rounded-xl border border-charcoal-200 bg-white px-3 py-2 text-charcoal-900 shadow-sm lg:rounded-2xl lg:border-0 lg:bg-charcoal-900 lg:px-4 lg:py-2.5 lg:text-white lg:shadow-xl lg:shadow-charcoal-900/25">
             <div class="min-w-0 flex-1">
-                <div class="text-[10px] text-charcoal-300"><span x-text="totalQtyLabel()"></span></div>
-                <div class="truncate text-lg font-extrabold" x-text="rp(total())"></div>
+                <div class="text-[10px] text-charcoal-500 lg:text-charcoal-300"><span x-text="totalQtyLabel()"></span></div>
+                <div class="truncate text-base font-extrabold lg:text-lg" x-text="rp(total())"></div>
             </div>
             <button type="button" @click="openCheckout()" :disabled="cart.length === 0"
-                    class="inline-flex h-12 items-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-extrabold text-white disabled:opacity-40">
+                    class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-500 px-4 text-xs font-extrabold text-white disabled:opacity-40 lg:h-12 lg:px-5 lg:text-sm">
                 Bayar
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                <svg class="h-4 w-4 lg:h-5 lg:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
             </button>
         </div>
     </div>
