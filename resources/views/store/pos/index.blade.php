@@ -1,39 +1,45 @@
 @extends('layouts.app')
 @section('content')
 
-<div x-data="posApp()" x-init="init()">
-    <div class="mb-3 flex items-center justify-between gap-3">
-        <div>
-            <h1 class="text-[22px] font-extrabold leading-tight text-charcoal-900">Kasir</h1>
-            <p class="text-xs text-charcoal-500">Ketuk barang untuk menambah ke keranjang</p>
+<div x-data="posApp()" x-init="init()" class="pos-dashboard">
+    <div class="mb-4 flex items-center justify-between gap-3">
+        <div class="min-w-0">
+            <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-brand-600">Point of sale</p>
+            <h1 class="mt-0.5 text-xl font-extrabold leading-tight tracking-tight text-charcoal-900">Kasir</h1>
+            <p class="mt-0.5 text-[11px] text-charcoal-500">Pilih barang, atur jumlah, lalu bayar</p>
         </div>
-        <a href="{{ route('store.sales.index') }}" class="btn-secondary !min-h-[40px] !px-3">Riwayat</a>
+        <div class="flex items-center gap-2">
+            <button type="button" @click="$refs.cartPanel.scrollIntoView({ behavior: 'smooth', block: 'start' })" class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-50 px-3 text-xs font-bold text-brand-700 lg:hidden">
+                <x-icon name="cart" class="h-4 w-4" /><span x-text="cart.length"></span>
+            </button>
+            <a href="{{ route('store.sales.index') }}" class="btn-secondary !min-h-[40px] !px-3 !text-xs">Riwayat</a>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
         {{-- Cari barang --}}
         <div class="lg:col-span-3">
-            <div class="sticky top-0 z-10 -mx-3 bg-[#f3f4f6] px-3 pb-2 pt-1 sm:-mx-5 sm:px-5 md:-mx-8 md:px-8 lg:mx-0 lg:bg-white lg:px-0">
+            <div class="sticky top-0 z-10 -mx-3 bg-[#f3f4f6]/95 px-3 pb-3 pt-1 backdrop-blur sm:-mx-5 sm:px-5 md:-mx-8 md:px-8 lg:mx-0 lg:bg-white lg:px-0">
                 <div class="relative">
                     <svg class="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-charcoal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"/></svg>
                     <input type="search" x-ref="search" x-model="q" @input.debounce.250ms="search()"
                            @keydown.enter.prevent="addFirst()"
                            placeholder="Cari nama / kode / scan barcode…" autocomplete="off"
-                           class="form-input h-12 pl-11 text-base">
+                           class="form-input h-11 pl-10 text-sm">
                 </div>
             </div>
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div class="grid grid-cols-2 gap-2">
                 <template x-for="m in results" :key="m.id">
                     <button type="button" @click="add(m)"
-                            class="relative rounded-xl border bg-white p-3 text-left shadow-sm transition active:scale-[0.99]"
+                            class="pos-product relative rounded-xl border bg-white p-3 text-left shadow-sm transition active:scale-[0.99]"
                             :class="[m.stock <= 0 ? 'opacity-50' : '', inCart(m.id) ? 'border-brand-500 ring-1 ring-brand-500' : 'border-charcoal-200 hover:border-brand-300']">
-                        <div class="flex items-start justify-between gap-2">
-                            <span class="text-[15px] font-bold text-charcoal-900" x-text="m.name"></span>
-                            <span class="shrink-0 text-[15px] font-extrabold text-brand-700" x-text="rp(m.units[0].price)"></span>
+                        <div class="min-w-0">
+                            <span class="line-clamp-2 text-xs font-bold leading-4 text-charcoal-900" x-text="m.name"></span>
+                            <span class="mt-1 block text-sm font-extrabold text-brand-700" x-text="rp(m.units[0].price)"></span>
                         </div>
-                        <div class="mt-1 flex justify-between text-xs text-charcoal-500">
-                            <span x-text="m.code"></span>
-                            <span :class="m.stock <= 0 ? 'font-bold text-rose-600' : ''" x-text="'Stok ' + num(m.stock) + ' ' + m.base_unit"></span>
+                        <div class="mt-2 flex items-center justify-between gap-1 text-[10px] text-charcoal-500">
+                            <span class="truncate" x-text="m.code"></span>
+                            <span class="shrink-0" :class="m.stock <= 0 ? 'font-bold text-rose-600' : ''" x-text="'Stok ' + num(m.stock)"></span>
                         </div>
                         <span x-show="inCart(m.id)" x-text="'×' + num(inCart(m.id))"
                               class="absolute -right-1.5 -top-1.5 inline-flex h-6 min-w-[24px] items-center justify-center rounded-full bg-brand-600 px-1.5 text-xs font-extrabold text-white"></span>
@@ -44,32 +50,32 @@
         </div>
 
         {{-- Keranjang --}}
-        <div class="lg:col-span-2">
+        <div class="scroll-mt-4 lg:col-span-2" x-ref="cartPanel">
             <div class="card overflow-hidden lg:sticky lg:top-4">
                 <div class="flex items-center justify-between border-b border-charcoal-100 px-4 py-3">
-                    <span class="text-[15px] font-bold text-charcoal-900">Keranjang (<span x-text="cart.length"></span>)</span>
-                    <button type="button" x-show="cart.length" @click="if (confirm('Kosongkan keranjang?')) cart = []" class="text-xs font-semibold text-rose-600">Kosongkan</button>
+                    <span class="text-sm font-bold text-charcoal-900">Keranjang <span class="ml-1 rounded-full bg-charcoal-100 px-2 py-0.5 text-[10px]" x-text="cart.length"></span></span>
+                    <button type="button" x-show="cart.length" @click="if (confirm('Kosongkan keranjang?')) cart = []" class="text-[11px] font-semibold text-rose-600">Kosongkan</button>
                 </div>
                 <div class="divide-y divide-charcoal-100 lg:max-h-[55vh] lg:overflow-y-auto">
                     <template x-for="(row, i) in cart" :key="row.key">
-                        <div class="px-4 py-3">
+                        <div class="px-3.5 py-3">
                             <div class="flex items-start justify-between gap-2">
-                                <span class="text-sm font-bold text-charcoal-900" x-text="row.name"></span>
-                                <button type="button" class="-m-1 p-1 text-xs font-semibold text-rose-500" @click="cart.splice(i, 1)">Hapus</button>
+                                <span class="text-xs font-bold text-charcoal-900" x-text="row.name"></span>
+                                <button type="button" class="-m-1 p-1 text-[10px] font-semibold text-rose-500" @click="cart.splice(i, 1)">Hapus</button>
                             </div>
                             <div class="mt-2 grid grid-cols-12 gap-2">
-                                <div class="col-span-5 flex h-11 items-center rounded-xl border border-charcoal-200">
-                                    <button type="button" class="h-full px-3 text-xl font-bold text-charcoal-600" @click="row.qty = Math.max(0.01, +(row.qty - 1).toFixed(2)); reprice(row)">−</button>
-                                    <input type="number" step="0.01" min="0.01" x-model.number="row.qty" @input="reprice(row)" class="w-full border-0 p-0 text-center text-base font-bold focus:ring-0">
-                                    <button type="button" class="h-full px-3 text-xl font-bold text-charcoal-600" @click="row.qty = +(row.qty + 1).toFixed(2); reprice(row)">+</button>
+                                <div class="col-span-5 flex h-10 items-center rounded-xl border border-charcoal-200">
+                                    <button type="button" class="h-full px-2.5 text-lg font-bold text-charcoal-600" @click="row.qty = Math.max(0.01, +(row.qty - 1).toFixed(2)); reprice(row)">−</button>
+                                    <input type="number" step="0.01" min="0.01" x-model.number="row.qty" @input="reprice(row)" class="w-full border-0 p-0 text-center text-sm font-bold focus:ring-0">
+                                    <button type="button" class="h-full px-2.5 text-lg font-bold text-charcoal-600" @click="row.qty = +(row.qty + 1).toFixed(2); reprice(row)">+</button>
                                 </div>
-                                <select class="col-span-3 h-11 rounded-xl border border-charcoal-200 px-2 text-sm" x-model="row.unit" @change="reprice(row, true)">
+                                <select class="col-span-3 h-10 rounded-xl border border-charcoal-200 px-2 text-xs" x-model="row.unit" @change="reprice(row, true)">
                                     <template x-for="u in row.units" :key="u.name">
                                         <option :value="u.name" x-text="u.name" :selected="u.name === row.unit"></option>
                                     </template>
                                 </select>
                                 <input type="number" min="0" step="100" x-model.number="row.price" @input="row.manualPrice = true"
-                                       class="col-span-4 h-11 rounded-xl border border-charcoal-200 px-2 text-right text-sm" aria-label="Harga">
+                                       class="col-span-4 h-10 rounded-xl border border-charcoal-200 px-2 text-right text-xs" aria-label="Harga">
                             </div>
                             <div class="mt-1.5 flex justify-between text-xs">
                                 <span class="font-bold text-rose-600" x-show="stockLeft(row) < 0">Stok kurang!</span>
@@ -89,13 +95,13 @@
 
     {{-- Bar total: hanya total + tombol Bayar, isian pembayaran ada di lembar Bayar (tidak menutupi apa pun) --}}
     <div class="sticky bottom-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom)+8px)] z-30 mt-4 lg:bottom-4">
-        <div class="flex items-center gap-3 rounded-2xl bg-charcoal-900 px-4 py-3 text-white shadow-xl shadow-charcoal-900/30">
+        <div class="flex items-center gap-3 rounded-2xl bg-charcoal-900 px-4 py-2.5 text-white shadow-xl shadow-charcoal-900/25">
             <div class="min-w-0 flex-1">
-                <div class="text-xs text-charcoal-300"><span x-text="totalQtyLabel()"></span></div>
-                <div class="truncate text-2xl font-extrabold" x-text="rp(total())"></div>
+                <div class="text-[10px] text-charcoal-300"><span x-text="totalQtyLabel()"></span></div>
+                <div class="truncate text-lg font-extrabold" x-text="rp(total())"></div>
             </div>
             <button type="button" @click="openCheckout()" :disabled="cart.length === 0"
-                    class="inline-flex h-14 items-center gap-2 rounded-xl bg-brand-500 px-6 text-base font-extrabold text-white disabled:opacity-40">
+                    class="inline-flex h-12 items-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-extrabold text-white disabled:opacity-40">
                 Bayar
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
             </button>
@@ -211,6 +217,19 @@
         </div>
     </template>
 </div>
+
+<style>
+    .pos-dashboard .pos-product { min-height: 104px; }
+    .pos-dashboard .card { box-shadow: 0 1px 3px rgb(15 23 42 / .05); }
+    .pos-dashboard select,
+    .pos-dashboard input { outline: none; }
+    @media (min-width: 640px) {
+        .pos-dashboard .pos-product { min-height: 96px; }
+    }
+    @media (min-width: 1024px) {
+        .pos-dashboard .pos-product { min-height: 100px; }
+    }
+</style>
 
 @push('scripts')
 <script>
