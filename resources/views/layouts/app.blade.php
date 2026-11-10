@@ -141,7 +141,18 @@
         .topbar {
             background: #ffffff;
             border-bottom: 1px solid #e3e6eb;
+            box-shadow: 0 1px 10px rgba(31,37,47,.035);
         }
+
+        .mobile-brand-mark {
+            width: 40px; height: 40px; border-radius: 13px;
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #e85f12; background: #fff5ed; border: 1px solid #fed7ba;
+            flex-shrink: 0;
+        }
+        .mobile-brand-mark svg { width: 19px; height: 19px; }
+        .mobile-store-name { font-size: 14px; line-height: 18px; font-weight: 800; letter-spacing: -.15px; color: #1f252f; }
+        .mobile-store-meta { margin-top: 1px; font-size: 10.5px; line-height: 15px; font-weight: 500; color: #8491a3; }
 
         .main-bg { background: #f3f4f6; }
 
@@ -166,6 +177,14 @@
             width: 36px; height: 36px; border-radius: 10px; background: #ef6c1e;
             display: flex; align-items: center; justify-content: center;
             font-size: 14px; font-weight: 800; color: #fff; flex-shrink: 0;
+        }
+
+        @media (max-width: 1023px) {
+            .user-avatar {
+                width: 36px; height: 36px; border-radius: 999px;
+                background: #ef6c1e; border: 3px solid #fff; outline: 1px solid #fed7ba;
+                font-size: 12px; box-shadow: 0 2px 8px rgba(239,108,30,.16);
+            }
         }
 
         .topbar-menu-trigger {
@@ -774,7 +793,7 @@
          :class="sidebarOpen ? 'lg:pl-[260px]' : 'pl-0'">
 
         {{-- ─── TOPBAR ─── --}}
-        <header class="topbar sticky top-0 z-30 h-[60px] flex items-center px-3 md:px-6 gap-2 sm:gap-3">
+        <header class="topbar sticky top-0 z-30 flex h-[64px] items-center gap-2 px-3 sm:gap-3 md:px-6 lg:h-[60px]">
 
             {{-- Hamburger --}}
             <button type="button" @click="sidebarOpen = !sidebarOpen" aria-label="Menu"
@@ -785,13 +804,13 @@
             </button>
 
             {{-- Identitas toko (HP: seperti judul aplikasi) --}}
-            <a href="{{ route('dashboard') }}" class="flex flex-1 min-w-0 items-center gap-2.5">
-                <span class="lg:hidden inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white">
+            <a href="{{ route('dashboard') }}" class="flex min-w-0 flex-1 items-center gap-2.5">
+                <span class="mobile-brand-mark lg:hidden">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"/></svg>
                 </span>
-                <span class="min-w-0">
-                    <span class="block truncate text-[15px] font-extrabold leading-tight text-charcoal-900">{{ config('store.mode') ? config('store.name') : config('app.name') }}</span>
-                    <span class="block truncate text-xs text-charcoal-500 lg:hidden">Halo, {{ \Illuminate\Support\Str::of(auth()->user()->name)->before(' ') }} · {{ auth()->user()->roleLabel() }}</span>
+                <span class="min-w-0 flex-1">
+                    <span class="mobile-store-name block truncate lg:text-[15px]">{{ config('store.mode') ? config('store.name') : config('app.name') }}</span>
+                    <span class="mobile-store-meta block truncate lg:hidden">{{ auth()->user()->roleLabel() }} · {{ now()->translatedFormat('d M Y') }}</span>
                 </span>
             </a>
 
@@ -894,8 +913,8 @@
             <div x-data="notifBell()" class="relative">
 
                 <button type="button" @click="toggle()" aria-label="Notifikasi"
-                        class="relative h-10 w-10 flex items-center justify-center rounded-xl text-charcoal-600 hover:bg-charcoal-100 transition-colors">
-                    <svg class="h-[22px] w-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        class="relative flex h-9 w-9 items-center justify-center rounded-full border border-charcoal-200 bg-charcoal-50 text-charcoal-600 transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600 lg:h-10 lg:w-10 lg:rounded-xl lg:border-0 lg:bg-transparent">
+                    <svg class="h-[18px] w-[18px] lg:h-[22px] lg:w-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
                     </svg>
                     <span x-show="unreadCount > 0" x-text="unreadCount > 9 ? '9+' : unreadCount" x-cloak
@@ -944,7 +963,7 @@
             </div>
 
             {{-- User area --}}
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2">
                 <div class="hidden lg:block text-right">
                     <p class="text-[12px] font-semibold text-slate-800 leading-none">{{ auth()->user()->name }}</p>
                     <p class="text-[10px] text-slate-400 mt-0.5 leading-none">{{ auth()->user()->email }}</p>
