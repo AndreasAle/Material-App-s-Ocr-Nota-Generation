@@ -2,18 +2,31 @@
 @section('title', 'Pengaturan Akun')
 
 @section('content')
-<x-page-header title="Pengaturan Akun" subtitle="Kelola informasi profil dan keamanan akun Anda." />
+<div class="settings-dashboard" x-data="{ tab: @js($errors->hasAny(['current_password', 'password', 'password_confirmation']) ? 'security' : 'profile') }">
+<div class="mb-5 flex items-center gap-3">
+    <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-100"><x-icon name="users" class="h-5 w-5" /></span>
+    <div class="min-w-0">
+        <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-brand-600">Akun & preferensi</p>
+        <h1 class="mt-0.5 text-xl font-extrabold tracking-tight text-charcoal-900 sm:text-2xl">Pengaturan</h1>
+        <p class="mt-0.5 text-xs text-charcoal-500">Kelola profil, notifikasi, dan keamanan akun.</p>
+    </div>
+</div>
 
-
-
-<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
 
     {{-- Left: Forms --}}
-    <div class="xl:col-span-2 space-y-5">
+    <div class="space-y-4 xl:col-span-2">
+
+        <div class="settings-tabs" role="tablist">
+            <button type="button" @click="tab = 'profile'" :class="tab === 'profile' ? 'active' : ''">Profil</button>
+            <button type="button" @click="tab = 'whatsapp'" :class="tab === 'whatsapp' ? 'active' : ''">WhatsApp</button>
+            <button type="button" @click="tab = 'security'" :class="tab === 'security' ? 'active' : ''">Keamanan</button>
+        </div>
 
         {{-- Profile Form --}}
-        <x-data-card title="Informasi Profil" subtitle="Perbarui data utama akun Anda.">
-            <form method="POST" action="{{ route('settings.profile.update') }}" class="px-6 py-5 space-y-5">
+        <div x-show="tab === 'profile'" x-cloak>
+        <x-data-card title="Informasi Profil" subtitle="Data utama yang digunakan pada akun Anda.">
+            <form method="POST" action="{{ route('settings.profile.update') }}" class="space-y-4 px-4 py-4 sm:px-5">
                 @csrf
                 @method('PUT')
 
@@ -55,8 +68,8 @@
                     @enderror
                 </div>
 
-                <div class="flex justify-end pt-1">
-                    <button type="submit" class="btn-primary">
+                <div class="flex justify-end border-t border-charcoal-100 pt-4">
+                    <button type="submit" class="btn-primary w-full justify-center sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
@@ -65,14 +78,16 @@
                 </div>
             </form>
         </x-data-card>
+        </div>
 
         {{-- WhatsApp Config Card --}}
         @php
             $fontneConfigured = !empty(config('services.fonnte.token'));
             $waNumber = $user->whatsapp_number;
         @endphp
+        <div x-show="tab === 'whatsapp'" x-cloak>
         <x-data-card>
-            <div class="px-6 pt-5 pb-2 flex items-center gap-3">
+            <div class="flex items-center gap-3 border-b border-charcoal-100 px-4 py-4 sm:px-5">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
@@ -80,12 +95,12 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="font-semibold text-slate-800">Notifikasi WhatsApp</p>
+                    <p class="text-sm font-bold text-slate-800">Notifikasi WhatsApp</p>
                     <p class="text-xs text-slate-400">Status koneksi Fonnte Gateway & uji kirim pesan</p>
                 </div>
             </div>
 
-            <div class="px-6 py-4 space-y-3">
+            <div class="space-y-3 px-4 py-4 sm:px-5">
                 {{-- Status Token --}}
                 <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
                     <div class="flex items-center gap-2.5">
@@ -145,10 +160,12 @@
                 @endif
             </div>
         </x-data-card>
+        </div>
 
         {{-- Password Form --}}
-        <x-data-card title="Keamanan Akun" subtitle="Ganti password untuk menjaga keamanan akun Anda.">
-            <form method="POST" action="{{ route('settings.password.update') }}" class="px-6 py-5 space-y-5">
+        <div x-show="tab === 'security'" x-cloak>
+        <x-data-card title="Keamanan Akun" subtitle="Gunakan password yang kuat dan tidak mudah ditebak.">
+            <form method="POST" action="{{ route('settings.password.update') }}" class="space-y-4 px-4 py-4 sm:px-5">
                 @csrf
                 @method('PUT')
 
@@ -179,8 +196,8 @@
                            class="form-input">
                 </div>
 
-                <div class="flex justify-end pt-1">
-                    <button type="submit" class="btn-primary">
+                <div class="flex justify-end border-t border-charcoal-100 pt-4">
+                    <button type="submit" class="btn-primary w-full justify-center sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
                         </svg>
@@ -189,6 +206,7 @@
                 </div>
             </form>
         </x-data-card>
+        </div>
     </div>
 
     {{-- Right: Account Summary --}}
@@ -196,12 +214,12 @@
 
         {{-- User Card --}}
         <x-data-card>
-            <div class="px-6 py-6 text-center">
-                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold text-2xl">
+            <div class="px-5 py-5 text-center">
+                <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-lg font-extrabold text-brand-700 ring-1 ring-brand-100">
                     {{ strtoupper(substr($user->name, 0, 1)) }}
                 </div>
-                <p class="font-bold text-slate-900 text-base">{{ $user->name }}</p>
-                <p class="mt-0.5 text-sm text-slate-400">{{ $user->email }}</p>
+                <p class="text-sm font-bold text-slate-900">{{ $user->name }}</p>
+                <p class="mt-0.5 truncate text-xs text-slate-400">{{ $user->email }}</p>
                 <div class="mt-3 flex items-center justify-center gap-2">
                     @php
                         $roleBadge = match($user->role) {
@@ -223,16 +241,16 @@
                     @endif
                 </div>
             </div>
-            <div class="border-t border-slate-100 px-6 py-4 space-y-3">
-                <div class="flex items-center justify-between text-sm">
+            <div class="space-y-2.5 border-t border-slate-100 px-5 py-4">
+                <div class="flex items-center justify-between text-xs">
                     <span class="text-slate-500">WhatsApp</span>
                     <span class="font-medium text-slate-700">{{ $user->whatsapp_number ?: '—' }}</span>
                 </div>
-                <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center justify-between text-xs">
                     <span class="text-slate-500">Bergabung</span>
                     <span class="font-medium text-slate-700">{{ $user->created_at->format('d M Y') }}</span>
                 </div>
-                <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center justify-between text-xs">
                     <span class="text-slate-500">ID User</span>
                     <span class="font-mono text-xs text-slate-400">#{{ $user->id }}</span>
                 </div>
@@ -240,8 +258,9 @@
         </x-data-card>
 
         {{-- Tips --}}
-        <x-data-card title="Tips Keamanan">
-            <ul class="px-6 py-5 space-y-3">
+        <details class="card overflow-hidden">
+            <summary class="flex cursor-pointer list-none items-center justify-between px-5 py-3.5 text-xs font-bold text-charcoal-800">Tips keamanan <span class="text-charcoal-400">Lihat</span></summary>
+            <ul class="space-y-3 border-t border-charcoal-100 px-5 py-4">
                 <li class="flex items-start gap-2.5 text-sm text-slate-600">
                     <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold">1</span>
                     Pastikan nama akun sesuai dengan pengguna sistem.
@@ -259,8 +278,19 @@
                     Tambahkan nomor WhatsApp untuk menerima notifikasi penting.
                 </li>
             </ul>
-        </x-data-card>
+        </details>
 
     </div>
 </div>
+</div>
+
+<style>
+    .settings-dashboard .settings-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.25rem; border:1px solid rgb(226 232 240); border-radius:1rem; background:#fff; padding:.25rem; box-shadow:0 1px 2px rgb(15 23 42 / .04); }
+    .settings-dashboard .settings-tabs button { min-height:2.5rem; border-radius:.75rem; padding:.5rem .65rem; font-size:.72rem; line-height:1rem; font-weight:700; color:rgb(100 116 139); transition:all .15s ease; }
+    .settings-dashboard .settings-tabs button.active { background:rgb(31 37 47); color:#fff; box-shadow:0 4px 12px rgb(31 37 47 / .16); }
+    .settings-dashboard .form-label,
+    .settings-dashboard .form-label-required { font-size:.72rem; }
+    .settings-dashboard .form-input { min-height:2.65rem; font-size:.8rem; }
+    .settings-dashboard .card { box-shadow:0 1px 3px rgb(15 23 42 / .04); }
+</style>
 @endsection
